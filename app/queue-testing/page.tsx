@@ -986,7 +986,153 @@ export default function QueueTestingPage() {
       <main>
         {injectionStep !== 'idle' ? (
           // Render Injection Flow
-          <div>Injection flow UI here</div>
+          <div className="space-y-6">
+            {injectionStep === 'evaluating' && (
+              <Card className="bg-white border-gray-200 shadow-lg">
+                <CardHeader>
+                  <CardTitle className="text-gray-900">Evaluating Injection Requirements</CardTitle>
+                </CardHeader>
+                <CardContent>
+                  <div className="space-y-4">
+                    <Progress value={evaluationProgress} className="w-full" />
+                    {evaluationSteps.map((step, index) => (
+                      <div key={index} className={`p-3 rounded ${index === currentEvaluationStep ? 'bg-blue-50 border-blue-200' : 'bg-gray-50'}`}>
+                        <div className="flex justify-between items-center">
+                          <span className="text-gray-900">{step.title}</span>
+                          <span className="text-sm text-gray-600">{step.progress}%</span>
+                        </div>
+                        <p className="text-sm text-gray-600 mt-1">{step.description}</p>
+                        <Progress value={step.progress} className="w-full mt-2" />
+                      </div>
+                    ))}
+                  </div>
+                </CardContent>
+              </Card>
+            )}
+
+            {injectionStep === 'pricing' && analysisResult && (
+              <Card className="bg-white border-gray-200 shadow-lg">
+                <CardHeader>
+                  <CardTitle className="text-gray-900">Injection Pricing</CardTitle>
+                </CardHeader>
+                <CardContent>
+                  <div className="space-y-6">
+                    <div className="bg-blue-50 p-4 rounded-lg">
+                      <h3 className="font-semibold text-gray-900 mb-2">Account: {analysisResult.email}</h3>
+                      <div className="grid grid-cols-2 gap-4 text-sm">
+                        <div>
+                          <span className="text-gray-600">Current Position:</span>
+                          <span className="font-semibold text-gray-900 ml-2">{analysisResult.currentPosition.toLocaleString()}</span>
+                        </div>
+                        <div>
+                          <span className="text-gray-600">Target Position:</span>
+                          <span className="font-semibold text-green-600 ml-2">{analysisResult.estimatedImprovement.toLocaleString()}</span>
+                        </div>
+                        <div>
+                          <span className="text-gray-600">Complexity Score:</span>
+                          <span className="font-semibold text-gray-900 ml-2">{analysisResult.complexityScore}/10</span>
+                        </div>
+                        <div>
+                          <span className="text-gray-600">Risk Level:</span>
+                          <span className={`font-semibold ml-2 ${analysisResult.riskLevel === 'low' ? 'text-green-600' : analysisResult.riskLevel === 'medium' ? 'text-yellow-600' : 'text-red-600'}`}>
+                            {analysisResult.riskLevel.toUpperCase()}
+                          </span>
+                        </div>
+                      </div>
+                    </div>
+
+                    <div className="border-l-4 border-blue-500 pl-4">
+                      <h4 className="font-semibold text-gray-900 mb-2">Personalized Pricing</h4>
+                      <div className="text-3xl font-bold text-blue-600 mb-2">${personalizedPrice}</div>
+                      <p className="text-sm text-gray-600">
+                        Based on account complexity, current position, and urgency multiplier
+                      </p>
+                    </div>
+
+                    <div className="space-y-3">
+                      <h4 className="font-semibold text-gray-900">Payment Options</h4>
+                      <div className="grid grid-cols-1 gap-3">
+                        <Button 
+                          onClick={() => handlePayment("venmo", "injection", personalizedPrice)}
+                          className="w-full bg-blue-600 hover:bg-blue-700 text-white justify-start"
+                        >
+                          <CreditCard className="mr-2 h-4 w-4" />
+                          Pay with Venmo - ${personalizedPrice}
+                        </Button>
+                        <Button 
+                          onClick={() => handlePayment("bitcoin", "injection", personalizedPrice)}
+                          className="w-full bg-orange-600 hover:bg-orange-700 text-white justify-start"
+                        >
+                          <CreditCard className="mr-2 h-4 w-4" />
+                          Pay with Bitcoin - ${personalizedPrice}
+                        </Button>
+                        <Button 
+                          onClick={() => handlePayment("ethereum", "injection", personalizedPrice)}
+                          className="w-full bg-purple-600 hover:bg-purple-700 text-white justify-start"
+                        >
+                          <CreditCard className="mr-2 h-4 w-4" />
+                          Pay with Ethereum - ${personalizedPrice}
+                        </Button>
+                      </div>
+                    </div>
+
+                    <Button 
+                      onClick={() => setInjectionStep('idle')}
+                      variant="outline" 
+                      className="w-full"
+                    >
+                      Cancel Injection
+                    </Button>
+                  </div>
+                </CardContent>
+              </Card>
+            )}
+
+            {(injectionStep === 'processing' || injectionStep === 'injecting') && (
+              <Card className="bg-white border-gray-200 shadow-lg">
+                <CardHeader>
+                  <CardTitle className="text-gray-900">
+                    {injectionStep === 'processing' ? 'Processing Payment...' : 'Injecting Account...'}
+                  </CardTitle>
+                </CardHeader>
+                <CardContent>
+                  <div className="text-center space-y-4">
+                    <Loader2 className="animate-spin h-8 w-8 mx-auto text-blue-600" />
+                    <p className="text-gray-600">
+                      {injectionStep === 'processing' 
+                        ? 'Verifying payment and preparing injection...' 
+                        : 'Optimizing queue position...'}
+                    </p>
+                  </div>
+                </CardContent>
+              </Card>
+            )}
+
+            {injectionStep === 'complete' && (
+              <Card className="bg-white border-gray-200 shadow-lg">
+                <CardHeader>
+                  <CardTitle className="text-green-600">Injection Complete!</CardTitle>
+                </CardHeader>
+                <CardContent>
+                  <div className="text-center space-y-4">
+                    <CheckCircle className="h-12 w-12 text-green-600 mx-auto" />
+                    <p className="text-gray-900">Your queue position has been successfully optimized.</p>
+                    <Button 
+                      onClick={() => {
+                        setInjectionStep('idle')
+                        setAnalysisStep('idle')
+                        setAnalysisResult(null)
+                        setEmail('')
+                      }}
+                      className="w-full bg-blue-600 hover:bg-blue-700 text-white"
+                    >
+                      Start New Analysis
+                    </Button>
+                  </div>
+                </CardContent>
+              </Card>
+            )}
+          </div>
         ) : (
           // Render Analysis Flow
           <Card className="bg-white border-gray-200 shadow-lg">
@@ -1170,6 +1316,71 @@ export default function QueueTestingPage() {
               ) : (
                 <p className="text-gray-600">No analysis history found.</p>
               )}
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* Payment Confirmation Modal */}
+      {showPaymentConfirm && (
+        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center p-4 z-50">
+          <div className="bg-white rounded-lg p-6 max-w-md w-full">
+            <div className="flex justify-between items-center mb-4">
+              <h2 className="text-xl font-bold text-gray-900">Payment Instructions</h2>
+              <Button onClick={() => setShowPaymentConfirm(false)} variant="ghost" size="sm">
+                <X className="h-4 w-4" />
+              </Button>
+            </div>
+            <div className="space-y-4">
+              {selectedPaymentType === "venmo" && (
+                <div>
+                  <p className="text-gray-900 mb-2">Send payment via Venmo:</p>
+                  <div className="bg-gray-100 p-3 rounded">
+                    <p className="font-mono text-sm">@linelogic-payments</p>
+                    <p className="font-bold text-lg">${paymentAmount}</p>
+                  </div>
+                  <p className="text-sm text-gray-600 mt-2">Include your email in the payment description</p>
+                </div>
+              )}
+              {selectedPaymentType === "bitcoin" && (
+                <div>
+                  <p className="text-gray-900 mb-2">Send Bitcoin payment to:</p>
+                  <div className="bg-gray-100 p-3 rounded">
+                    <p className="font-mono text-xs break-all">bc1qxy2kgdygjrsqtzq2n0yrf2493p83kkfjhx0wlh</p>
+                    <p className="font-bold text-lg">${paymentAmount} USD</p>
+                  </div>
+                </div>
+              )}
+              {selectedPaymentType === "ethereum" && (
+                <div>
+                  <p className="text-gray-900 mb-2">Send Ethereum payment to:</p>
+                  <div className="bg-gray-100 p-3 rounded">
+                    <p className="font-mono text-xs break-all">0x742d35Cc6634C0532925a3b8D4ec5bB6644bfc5</p>
+                    <p className="font-bold text-lg">${paymentAmount} USD</p>
+                  </div>
+                </div>
+              )}
+              
+              <div className="mt-4">
+                <label className="block text-sm font-medium text-gray-700 mb-2">
+                  Transaction ID / Receipt:
+                </label>
+                <Input
+                  type="text"
+                  placeholder="Enter transaction ID or receipt number"
+                  value={receiptInput}
+                  onChange={(e) => setReceiptInput(e.target.value)}
+                  className="w-full"
+                />
+              </div>
+              
+              <Button 
+                onClick={handleReceiptSubmit}
+                className="w-full bg-blue-600 hover:bg-blue-700 text-white"
+                disabled={!receiptInput.trim()}
+              >
+                Submit Payment Receipt
+              </Button>
             </div>
           </div>
         </div>
