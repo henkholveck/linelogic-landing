@@ -554,11 +554,22 @@ export default function QueueTestingPage() {
       await new Promise((resolve) => setTimeout(resolve, 600))
     }
 
+    console.log("🔬 Analysis complete, generating result...")
     const result = generateAnalysisResult(email)
+    console.log("🔬 Generated result:", result)
+    
+    console.log("🔬 Setting analysis result...")
     setAnalysisResult(result)
+    
+    console.log("🔬 Saving to history...")
     saveAnalysisToHistory(result)
+    
+    console.log("🔬 Updating credits...")
     await updateUserCredits(user.credits - 5)
+    
+    console.log("🔬 Setting analysis step to complete...")
     setAnalysisStep("complete")
+    console.log("✅ Analysis process finished!")
   }
 
   const handleBulkAnalyze = async (e: React.FormEvent) => {
@@ -958,7 +969,11 @@ export default function QueueTestingPage() {
               <p className="font-semibold text-gray-900">{user.name}</p>
               <p className="text-sm text-gray-600">{user.email}</p>
             </div>
-            <Button onClick={() => handleBuyCredits(10, 20)} variant="secondary">
+            <Button onClick={() => setShowHistory(true)} variant="ghost" size="sm">
+              <History className="h-4 w-4 mr-2" />
+              History
+            </Button>
+            <Button onClick={() => setShowBuyCredits(true)} variant="outline" size="sm">
               <Sparkles className="mr-2 h-4 w-4" /> {user.credits} Credits
             </Button>
             <Button onClick={handleLogout} variant="outline">
@@ -1114,6 +1129,51 @@ export default function QueueTestingPage() {
       <div className="max-w-7xl mx-auto">
         {authStep !== "authenticated" ? renderAuthForms() : renderMainApp()}
       </div>
+      
+      {/* History Modal */}
+      {showHistory && (
+        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center p-4 z-50">
+          <div className="bg-white rounded-lg p-6 max-w-4xl w-full max-h-[80vh] overflow-y-auto">
+            <div className="flex justify-between items-center mb-4">
+              <h2 className="text-xl font-bold text-gray-900">Analysis History</h2>
+              <Button onClick={() => setShowHistory(false)} variant="ghost" size="sm">
+                <X className="h-4 w-4" />
+              </Button>
+            </div>
+            <div>
+              {analysisHistory.length > 0 ? (
+                <div className="space-y-4">
+                  {analysisHistory.map((result, index) => (
+                    <Card key={index} className="bg-gray-50 border-gray-200">
+                      <CardContent className="p-4">
+                        <div className="flex justify-between items-start">
+                          <div>
+                            <p className="font-semibold text-gray-900">{result.email}</p>
+                            <p className="text-sm text-gray-600">
+                              Position: {result.currentPosition.toLocaleString()} → {result.estimatedImprovement.toLocaleString()}
+                            </p>
+                            <p className="text-xs text-gray-500">{new Date(result.timestamp).toLocaleString()}</p>
+                          </div>
+                          <Button 
+                            onClick={() => handleViewHistoryResult(result)}
+                            size="sm" 
+                            variant="outline"
+                            className="text-blue-600 border-blue-600 hover:bg-blue-50"
+                          >
+                            View (1 Credit)
+                          </Button>
+                        </div>
+                      </CardContent>
+                    </Card>
+                  ))}
+                </div>
+              ) : (
+                <p className="text-gray-600">No analysis history found.</p>
+              )}
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 }
