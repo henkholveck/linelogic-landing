@@ -17,11 +17,13 @@ import {
   Minus,
   UserCheck,
   Calendar,
-  DollarSign
+  DollarSign,
+  Shield
 } from "lucide-react"
 import { db } from "@/lib/supabase"
 import { useAuth } from "@/contexts/AuthContext"
 import { useRouter } from "next/navigation"
+import { FraudMonitoringPanel } from "@/components/FraudMonitoringPanel"
 
 interface UserProfile {
   id: string
@@ -268,7 +270,7 @@ export default function AdminPage() {
       {/* Main Content */}
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
         <Tabs defaultValue="users" className="space-y-6">
-          <TabsList className="grid w-full grid-cols-3">
+          <TabsList className="grid w-full grid-cols-4">
             <TabsTrigger value="users" className="flex items-center space-x-2">
               <Users className="h-4 w-4" />
               <span>Users</span>
@@ -276,6 +278,10 @@ export default function AdminPage() {
             <TabsTrigger value="payments" className="flex items-center space-x-2">
               <CreditCard className="h-4 w-4" />
               <span>Payments ({pendingReceipts.length})</span>
+            </TabsTrigger>
+            <TabsTrigger value="fraud" className="flex items-center space-x-2">
+              <Shield className="h-4 w-4" />
+              <span>Fraud Monitor</span>
             </TabsTrigger>
             <TabsTrigger value="analytics" className="flex items-center space-x-2">
               <Settings className="h-4 w-4" />
@@ -460,6 +466,11 @@ export default function AdminPage() {
                 </div>
               </CardContent>
             </Card>
+          </TabsContent>
+
+          {/* Fraud Monitor Tab */}
+          <TabsContent value="fraud" className="space-y-6">
+            <FraudMonitoringPanel />
           </TabsContent>
 
           {/* Analytics Tab */}

@@ -30,8 +30,10 @@ export default function RegisterPage() {
     setError('')
 
     try {
-      // Get user's IP address for rate limiting
+      // Get user's IP address and user agent for fraud detection
       let userIP = null
+      let userAgent = null
+      
       try {
         const ipResponse = await fetch('https://api.ipify.org?format=json')
         const ipData = await ipResponse.json()
@@ -40,12 +42,25 @@ export default function RegisterPage() {
         console.warn('Could not get IP address:', ipError)
       }
 
-      const result = await signUp(email, password, name, userIP)
+      if (typeof navigator !== 'undefined') {
+        userAgent = navigator.userAgent
+      }
+
+      const result = await signUp(email, password, name, userIP, userAgent)
+      
       if (result.error) {
-        if (result.error.message.includes('rate limit') || result.error.message.includes('Too many')) {
-          setError('Too many signup attempts from this location. Please try again later.')
-        } else if (result.error.message.includes('valid name')) {
-          setError('Please enter a valid name (at least 2 characters, letters only)')
+        // Handle specific fraud error types
+        if (result.error.message.includes('permanently blocked') || 
+            result.error.message.includes('banned') ||
+            result.error.message.includes('You tried it')) {
+          setError(result.error.message)
+          // Disable the form for banned users
+          setLoading(false)
+          return
+        } else if (result.error.message.includes('domain isn\'t eligible') ||
+                   result.error.message.includes('valid name') ||
+                   result.error.message.includes('fraud ban')) {
+          setError(result.error.message)
         } else {
           setError(result.error.message)
         }
@@ -56,10 +71,18 @@ export default function RegisterPage() {
         }, 3000)
       }
     } catch (err: any) {
-      if (err.message.includes('rate limit') || err.message.includes('Too many')) {
-        setError('Too many signup attempts. Please try again later.')
+      // Handle fraud detection errors with appropriate messaging
+      if (err.message.includes('permanently blocked') || 
+          err.message.includes('banned') ||
+          err.message.includes('You tried it') ||
+          err.message.includes('bullshit')) {
+        setError(err.message)
+      } else if (err.message.includes('domain isn\'t eligible')) {
+        setError('We currently only accept Gmail or verified business addresses.')
       } else if (err.message.includes('valid name')) {
         setError('Please enter a valid name (minimum 2 characters, letters only)')
+      } else if (err.message.includes('Too many')) {
+        setError('Too many signup attempts. Please try again later.')
       } else {
         setError('Registration failed. Please try again.')
       }

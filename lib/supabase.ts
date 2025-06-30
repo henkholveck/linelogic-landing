@@ -13,8 +13,8 @@ export const supabase = createClient(supabaseUrl, supabaseAnonKey, {
 
 // Auth helper functions
 export const auth = {
-  signUp: async (email: string, password: string, name: string, ipAddress?: string) => {
-    // ✅ Enhanced validation
+  signUp: async (email: string, password: string, name: string, ipAddress?: string, userAgent?: string) => {
+    // ✅ Enhanced validation with fraud detection
     if (typeof email !== "string" || !email.trim()) {
       throw new Error("Email must be a valid string")
     }
@@ -28,29 +28,30 @@ export const auth = {
     // Enhanced name validation
     const cleanName = name.trim()
     if (cleanName.length < 2) {
-      throw new Error("Name must be at least 2 characters")
+      throw new Error("Please enter a valid name")
     }
     if (cleanName.length > 50) {
       throw new Error("Name must be less than 50 characters")
     }
-    // Prevent obvious spam patterns
-    if (/^(.)\1+$/.test(cleanName)) { // repeated characters like "aaa"
-      throw new Error("Please enter a valid name")
-    }
-    if (!/^[a-zA-Z\s'-]+$/.test(cleanName)) {
-      throw new Error("Name can only contain letters, spaces, hyphens, and apostrophes")
-    }
 
-    // Check rate limits if IP provided
-    if (ipAddress) {
-      const { data: rateLimitOk } = await supabase.rpc('check_signup_rate_limit', {
-        user_ip: ipAddress,
-        user_email: email.trim().toLowerCase()
-      })
-      
-      if (!rateLimitOk) {
-        throw new Error("Too many signup attempts. Please try again later.")
-      }
+    // Import fraud detection dynamically to avoid circular imports
+    const { FraudDetectionService } = await import('./fraud-detection')
+
+    // Get IP address if not provided
+    const clientIP = ipAddress || '127.0.0.1'
+
+    // Run comprehensive fraud detection
+    const fraudCheck = await FraudDetectionService.checkSignupFraud({
+      email: email.trim().toLowerCase(),
+      name: cleanName,
+      ipAddress: clientIP,
+      userAgent: userAgent || (typeof navigator !== 'undefined' ? navigator.userAgent : undefined)
+    })
+
+    // Block if fraud detected
+    if (!fraudCheck.allowed) {
+      const errorMessage = FraudDetectionService.getFraudErrorMessage(fraudCheck.reason || 'UNKNOWN')
+      throw new Error(errorMessage)
     }
 
     console.log("Supabase signUp called with:", { email: email.trim(), name: cleanName })
@@ -66,15 +67,31 @@ export const auth = {
       },
     })
 
-    // Log signup attempt
-    if (ipAddress) {
+    // Log signup attempt with fraud score
+    if (clientIP) {
       try {
+        const normalizedEmail = await FraudDetectionService.normalizeEmail(email.trim().toLowerCase())
+        
         await supabase.rpc('log_signup_attempt', {
-          user_ip: ipAddress,
+          user_ip: clientIP,
           user_email: email.trim().toLowerCase(),
           is_success: !error,
-          user_agent_string: navigator?.userAgent || null
+          user_agent_string: userAgent || (typeof navigator !== 'undefined' ? navigator.userAgent : null)
         })
+
+        // Store additional fraud detection data
+        if (!error && data.user) {
+          await supabase
+            .from('signup_attempts')
+            .update({ 
+              fraud_score: fraudCheck.score,
+              normalized_email: normalizedEmail
+            })
+            .eq('email', email.trim().toLowerCase())
+            .eq('ip_address', clientIP)
+            .order('created_at', { ascending: false })
+            .limit(1)
+        }
       } catch (logError) {
         console.warn("Failed to log signup attempt:", logError)
       }
