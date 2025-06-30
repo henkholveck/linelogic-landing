@@ -392,7 +392,10 @@ export default function QueueTestingPage() {
         setAuthError(error.message)
       } else {
         console.log("Login successful:", data)
-        // Auth state change will be handled by the useEffect
+        // Force auth step to authenticated if login succeeds
+        if (data?.user) {
+          setAuthStep("authenticated")
+        }
       }
     } catch (error) {
       console.error("Unexpected login error:", error)
@@ -800,9 +803,12 @@ export default function QueueTestingPage() {
   }
 
   useEffect(() => {
+    console.log("🔧 Setting up auth state listener...")
     const {
       data: { subscription },
     } = auth.onAuthStateChange(async (event, session) => {
+      console.log(`🔄 Auth event: ${event}`, session?.user?.email || 'no user')
+      
       if (session?.user) {
         console.log(`🔍 Loading user profile for:`, session.user.email)
         const { data: profile } = await db.getUserProfile(session.user.id)
@@ -817,14 +823,21 @@ export default function QueueTestingPage() {
             registrationDate: profile.created_at,
           })
           setAuthStep("authenticated")
+        } else {
+          console.log("❌ No profile found for user")
+          setAuthStep("login")
         }
       } else {
+        console.log("👤 No session, setting to login")
         setUser(null)
         setAuthStep("login")
       }
     })
 
-    return () => subscription.unsubscribe()
+    return () => {
+      console.log("🧹 Cleaning up auth listener")
+      subscription.unsubscribe()
+    }
   }, [])
 
   const [showForgotPassword, setShowForgotPassword] = useState(false)
