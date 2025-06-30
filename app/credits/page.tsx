@@ -4,6 +4,10 @@ import { useState } from "react"
 import { Button } from "@/components/ui/button"
 import { Card, CardContent, CardHeader } from "@/components/ui/card"
 import { Badge } from "@/components/ui/badge"
+import { Input } from "@/components/ui/input"
+import { Textarea } from "@/components/ui/textarea"
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
+import { Alert, AlertDescription } from "@/components/ui/alert"
 import {
   ArrowLeft,
   CreditCard,
@@ -17,7 +21,13 @@ import {
   HelpCircle,
   ChevronDown,
   ChevronUp,
+  AlertCircle,
+  Bitcoin,
+  DollarSign,
 } from "lucide-react"
+import { useAuth } from "@/contexts/AuthContext"
+import { db } from "@/lib/supabase"
+import { useRouter } from "next/navigation"
 
 interface CreditPackage {
   id: string
@@ -80,9 +90,14 @@ const faqs = [
       "Credits are used to perform account analyses and view historical results. New account analysis costs 5 credits, while viewing a previous result costs 1 credit. Credits never expire and can be used at any time.",
   },
   {
-    question: "What payment methods do you accept?",
+    question: "How do I get more credits?",
     answer:
-      "We accept Venmo (verified within 1-2 hours), Bitcoin (credited after 1 confirmation ~10-60 minutes), and Ethereum (credited after 55 confirmations ~10-15 minutes). All payments require transaction verification.",
+      "Purchase credits using Venmo, Bitcoin, or Ethereum. After payment, submit your receipt details through our form. Our admin team will manually verify and add credits to your account within 15-60 minutes. NO AUTOMATED PROCESSING.",
+  },
+  {
+    question: "Why manual verification?",
+    answer:
+      "We use manual verification to ensure payment security and prevent fraud. This also allows us to provide personalized support and handle any payment issues quickly.",
   },
   {
     question: "Can I get a refund?",
@@ -92,7 +107,7 @@ const faqs = [
   {
     question: "Do credits expire?",
     answer:
-      "No, credits never expire! Once purchased, they remain in your account indefinitely until you use them for account analyses or viewing historical results.",
+      "No, credits never expire! Once purchased and verified, they remain in your account indefinitely until you use them for account analyses or viewing historical results.",
   },
   {
     question: "Can I share credits with other users?",
@@ -105,24 +120,65 @@ const faqs = [
       "If you run out of credits, you can purchase more at any time. Your account and all historical data remain intact - you just won't be able to perform new analyses until you add more credits.",
   },
   {
-    question: "Is there a bulk discount for large purchases?",
-    answer:
-      "Yes! Our larger credit packages offer significant per-credit savings. The Enterprise package offers the best value at $0.43 per credit compared to $0.76 for the Starter package.",
-  },
-  {
     question: "How secure are my payments?",
     answer:
-      "All payments are processed through Venmo's secure payment infrastructure. We never store your payment information and all transactions are encrypted and protected.",
+      "All payment information is processed securely. We never store sensitive payment data and all transactions are manually verified by our admin team to ensure security.",
   },
 ]
 
 export default function CreditsPage() {
+  const { user, isLoading } = useAuth()
+  const router = useRouter()
   const [selectedPackage, setSelectedPackage] = useState<string | null>(null)
   const [expandedFaq, setExpandedFaq] = useState<number | null>(null)
+  const [showPaymentForm, setShowPaymentForm] = useState(false)
+  const [paymentMethod, setPaymentMethod] = useState("")
+  const [paymentAmount, setPaymentAmount] = useState(0)
+  const [receiptId, setReceiptId] = useState("")
+  const [submitting, setSubmitting] = useState(false)
+  const [submitted, setSubmitted] = useState(false)
 
-  const handlePurchase = (pkg: CreditPackage) => {
-    const venmoUrl = `https://venmo.com/linelogic?txn=pay&amount=${pkg.price}&note=${encodeURIComponent(`LineLogic Credits - ${pkg.credits} credits`)}&audience=private`
-    window.open(venmoUrl, "_blank")
+  // Redirect if not logged in
+  if (!isLoading && !user) {
+    router.push('/login')
+    return null
+  }
+
+  const handlePurchaseClick = (pkg: CreditPackage) => {
+    setSelectedPackage(pkg.id)
+    setPaymentAmount(pkg.price)
+    setShowPaymentForm(true)
+  }
+
+  const handlePaymentSubmit = async () => {
+    if (!user || !paymentMethod || !receiptId || !paymentAmount) {
+      alert("Please fill in all required fields")
+      return
+    }
+
+    setSubmitting(true)
+    try {
+      const receiptData = {
+        paymentType: paymentMethod,
+        serviceType: "credits",
+        amount: paymentAmount,
+        receiptId: receiptId
+      }
+
+      const { error } = await db.savePaymentReceipt(user.id, receiptData)
+      if (error) {
+        throw error
+      }
+
+      setSubmitted(true)
+      setShowPaymentForm(false)
+      alert("Payment receipt submitted successfully! Credits will be added to your account within 15-60 minutes after verification.")
+    } catch (error) {
+      console.error("Error submitting payment receipt:", error)
+      alert("Failed to submit payment receipt. Please try again.")
+    } finally {
+      setSubmitting(false)
+    }
   }
 
   return (
@@ -191,9 +247,9 @@ export default function CreditsPage() {
                   : pkg.bestValue
                     ? "border-2 border-green-300 shadow-lg"
                     : "border border-gray-200"
-              } hover:shadow-xl transition-shadow cursor-pointer`}
-              onClick={() => setSelectedPackage(pkg.id)}
+              } hover:shadow-xl transition-shadow`}
             >
+              {/* Credits can only be added manually by admin staff */}
               {pkg.popular && (
                 <div className="absolute -top-3 left-1/2 transform -translate-x-1/2">
                   <Badge className="bg-orange-600 text-white px-3 py-1">
@@ -230,16 +286,10 @@ export default function CreditsPage() {
                 </div>
 
                 <Button
-                  onClick={() => handlePurchase(pkg)}
-                  className={`w-full h-12 ${
-                    pkg.popular || pkg.bestValue
-                      ? "bg-orange-600 hover:bg-orange-700 text-white"
-                      : "bg-gray-900 hover:bg-gray-800 text-white"
-                  }`}
+                  onClick={() => handlePurchaseClick(pkg)}
+                  className="w-full h-12 bg-orange-600 hover:bg-orange-700 text-white"
                 >
                   <CreditCard className="w-4 h-4 mr-2" />
-                  Purchase Credits
-                </Button>
                   Purchase Credits
                 </Button>
               </CardContent>
@@ -250,44 +300,53 @@ export default function CreditsPage() {
         {/* Payment Info */}
         <div className="bg-white border border-gray-200 rounded-lg p-8 mb-16">
           <div className="text-center mb-8">
-            <h3 className="text-2xl font-bold text-gray-900 mb-4">Secure Payment with Venmo</h3>
+            <h3 className="text-2xl font-bold text-gray-900 mb-4">Payment Methods</h3>
             <p className="text-gray-600 max-w-2xl mx-auto">
-              We use Venmo for fast, secure payments. Click any "Purchase Credits" button above to be redirected to
-              Venmo with the payment details pre-filled.
+              We accept multiple payment methods for your convenience. After payment, submit your receipt details below for manual verification.
+              Credits will be added to your account within 15-60 minutes.
             </p>
           </div>
 
           <div className="grid md:grid-cols-3 gap-8">
             <div className="text-center">
               <div className="w-12 h-12 bg-blue-100 rounded-full flex items-center justify-center mx-auto mb-4">
-                <Shield className="h-6 w-6 text-blue-600" />
+                <DollarSign className="h-6 w-6 text-blue-600" />
               </div>
-              <h4 className="font-semibold text-gray-900 mb-2">Secure & Encrypted</h4>
+              <h4 className="font-semibold text-gray-900 mb-2">Venmo</h4>
               <p className="text-sm text-gray-600">
-                All payments are processed through Venmo's secure infrastructure with bank-level encryption.
+                Send payment to @linelogic with order details in the note
               </p>
             </div>
 
             <div className="text-center">
-              <div className="w-12 h-12 bg-green-100 rounded-full flex items-center justify-center mx-auto mb-4">
-                <Clock className="h-6 w-6 text-green-600" />
+              <div className="w-12 h-12 bg-orange-100 rounded-full flex items-center justify-center mx-auto mb-4">
+                <Bitcoin className="h-6 w-6 text-orange-600" />
               </div>
-              <h4 className="font-semibold text-gray-900 mb-2">Instant Processing</h4>
+              <h4 className="font-semibold text-gray-900 mb-2">Bitcoin</h4>
               <p className="text-sm text-gray-600">
-                Credits are added to your account immediately after payment confirmation.
+                Send BTC to our wallet address and provide the transaction hash
               </p>
             </div>
 
             <div className="text-center">
               <div className="w-12 h-12 bg-purple-100 rounded-full flex items-center justify-center mx-auto mb-4">
-                <Users className="h-6 w-6 text-purple-600" />
+                <Bitcoin className="h-6 w-6 text-purple-600" />
               </div>
-              <h4 className="font-semibold text-gray-900 mb-2">Trusted by Thousands</h4>
+              <h4 className="font-semibold text-gray-900 mb-2">Ethereum</h4>
               <p className="text-sm text-gray-600">
-                Join thousands of users who trust LineLogic for their queue optimization needs.
+                Send ETH to our wallet address and provide the transaction hash
               </p>
             </div>
           </div>
+
+          {submitted && (
+            <Alert className="mt-6 border-green-200 bg-green-50">
+              <CheckCircle className="h-4 w-4 text-green-600" />
+              <AlertDescription className="text-green-800">
+                Payment receipt submitted successfully! Credits will be added to your account within 15-60 minutes after verification.
+              </AlertDescription>
+            </Alert>
+          )}
         </div>
 
         {/* FAQ Section */}
@@ -328,6 +387,104 @@ export default function CreditsPage() {
           </Button>
         </div>
       </div>
+
+      {/* Payment Form Modal */}
+      {showPaymentForm && (
+        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4">
+          <div className="bg-white rounded-lg p-6 w-full max-w-md">
+            <div className="flex items-center justify-between mb-4">
+              <h3 className="text-lg font-semibold text-gray-900">Submit Payment Receipt</h3>
+              <Button
+                variant="ghost"
+                size="sm"
+                onClick={() => {
+                  setShowPaymentForm(false)
+                  setPaymentMethod("")
+                  setReceiptId("")
+                }}
+              >
+                ×
+              </Button>
+            </div>
+            
+            <div className="space-y-4">
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-2">
+                  Payment Method *
+                </label>
+                <Select value={paymentMethod} onValueChange={setPaymentMethod}>
+                  <SelectTrigger>
+                    <SelectValue placeholder="Select payment method" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="venmo">Venmo</SelectItem>
+                    <SelectItem value="bitcoin">Bitcoin</SelectItem>
+                    <SelectItem value="ethereum">Ethereum</SelectItem>
+                  </SelectContent>
+                </Select>
+              </div>
+
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-2">
+                  Amount
+                </label>
+                <Input
+                  type="number"
+                  value={paymentAmount}
+                  onChange={(e) => setPaymentAmount(Number(e.target.value))}
+                  placeholder="Payment amount"
+                  disabled
+                />
+              </div>
+
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-2">
+                  {paymentMethod === "venmo" ? "Venmo Username or Transaction ID" : "Transaction Hash"} *
+                </label>
+                <Input
+                  value={receiptId}
+                  onChange={(e) => setReceiptId(e.target.value)}
+                  placeholder={
+                    paymentMethod === "venmo" 
+                      ? "Your Venmo username or transaction ID"
+                      : "Blockchain transaction hash"
+                  }
+                />
+              </div>
+
+              <Alert className="border-yellow-200 bg-yellow-50">
+                <AlertCircle className="h-4 w-4 text-yellow-600" />
+                <AlertDescription className="text-yellow-800">
+                  <strong>No automatic processing.</strong> All payments require manual verification by our admin team. 
+                  Credits will be added within 15-60 minutes.
+                </AlertDescription>
+              </Alert>
+
+              <div className="flex space-x-3">
+                <Button
+                  variant="outline"
+                  className="flex-1"
+                  onClick={() => {
+                    setShowPaymentForm(false)
+                    setPaymentMethod("")
+                    setReceiptId("")
+                  }}
+                  disabled={submitting}
+                >
+                  Cancel
+                </Button>
+                <Button
+                  onClick={handlePaymentSubmit}
+                  className="flex-1 bg-orange-600 hover:bg-orange-700"
+                  disabled={submitting || !paymentMethod || !receiptId}
+                >
+                  {submitting ? "Submitting..." : "Submit Receipt"}
+                </Button>
+              </div>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   )
 }

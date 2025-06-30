@@ -20,6 +20,8 @@ import {
   DollarSign
 } from "lucide-react"
 import { db } from "@/lib/supabase"
+import { useAuth } from "@/contexts/AuthContext"
+import { useRouter } from "next/navigation"
 
 interface UserProfile {
   id: string
@@ -53,10 +55,8 @@ interface PaymentReceipt {
 }
 
 export default function AdminPage() {
-  // Auth check
-  const [isAdmin, setIsAdmin] = useState(false)
-  const [adminEmail, setAdminEmail] = useState("")
-  const [loading, setLoading] = useState(true)
+  const { user, isAdmin, isLoading } = useAuth()
+  const router = useRouter()
 
   // Data
   const [users, setUsers] = useState<UserProfile[]>([])
@@ -70,31 +70,19 @@ export default function AdminPage() {
   const [creditReason, setCreditReason] = useState("")
   const [showChatbot, setShowChatbot] = useState(false)
 
-  const ADMIN_EMAILS = ["henkster91@gmail.com", "monksb92@gmail.com"]
-
   useEffect(() => {
-    checkAdminAccess()
-  }, [])
-
-  const checkAdminAccess = async () => {
-    try {
-      // In a real app, you'd check the user's auth session
-      // For now, we'll use a simple email check
-      const email = prompt("Enter your admin email:")
-      if (email && ADMIN_EMAILS.includes(email.toLowerCase())) {
-        setIsAdmin(true)
-        setAdminEmail(email)
-        await loadData()
-      } else {
-        alert("Access denied. Admin privileges required.")
-        window.location.href = "/"
+    if (!isLoading) {
+      if (!user) {
+        router.push('/login')
+        return
       }
-    } catch (error) {
-      console.error("Admin access check failed:", error)
-      window.location.href = "/"
+      if (!isAdmin) {
+        router.push('/queue-testing')
+        return
+      }
+      loadData()
     }
-    setLoading(false)
-  }
+  }, [user, isAdmin, isLoading, router])
 
   const loadData = async () => {
     try {
@@ -133,7 +121,7 @@ export default function AdminPage() {
         amount: amount,
         type: 'added',
         reason: creditReason,
-        adminEmail: adminEmail
+        adminEmail: user.email
       })
 
       // Update local state
@@ -160,7 +148,7 @@ export default function AdminPage() {
       if (!receipt) return
 
       // Update receipt status
-      await db.updatePaymentReceiptStatus(receiptId, 'verified', adminEmail)
+      await db.updatePaymentReceiptStatus(receiptId, 'verified', user.email)
 
       // Add credits to user
       const user = users.find(u => u.id === receipt.user_id)
@@ -174,7 +162,7 @@ export default function AdminPage() {
           amount: creditsToAdd,
           type: 'added',
           reason: `Payment verified: ${receipt.payment_type} ${receipt.receipt_id}`,
-          adminEmail: adminEmail
+          adminEmail: user.email
         })
 
         // Update local state
@@ -206,7 +194,7 @@ export default function AdminPage() {
 
   const pendingReceipts = paymentReceipts.filter(r => r.status === 'pending_verification')
 
-  if (loading) {
+  if (isLoading) {
     return (
       <div className="min-h-screen bg-gray-50 flex items-center justify-center">
         <div className="text-center">
@@ -217,7 +205,7 @@ export default function AdminPage() {
     )
   }
 
-  if (!isAdmin) {
+  if (!user || !isAdmin) {
     return (
       <div className="min-h-screen bg-gray-50 flex items-center justify-center">
         <div className="text-center">
@@ -236,7 +224,7 @@ export default function AdminPage() {
           <div className="flex justify-between items-center py-6">
             <div>
               <h1 className="text-3xl font-bold text-gray-900">LineLogic Admin</h1>
-              <p className="text-gray-600">Welcome, {adminEmail}</p>
+              <p className="text-gray-600">Welcome, {user.email}</p>
             </div>
             <div className="flex items-center space-x-4">
               <Button
