@@ -565,7 +565,7 @@ export default function QueueTestingPage() {
     saveAnalysisToHistory(result)
     
     console.log("🔬 Updating credits...")
-    await updateUserCredits(user.credits - 5)
+    updateUserCredits(user.credits - 5) // Remove await to prevent blocking
     
     console.log("🔬 Setting analysis step to complete...")
     setAnalysisStep("complete")
@@ -619,7 +619,7 @@ export default function QueueTestingPage() {
     // Save all results to history
     results.forEach((result) => saveAnalysisToHistory(result))
 
-    await updateUserCredits(user.credits - totalCost)
+    updateUserCredits(user.credits - totalCost) // Remove await
     setAnalysisStep("complete")
   }
 
@@ -1039,7 +1039,7 @@ export default function QueueTestingPage() {
     }
 
     setAnalysisResult(result)
-    await updateUserCredits(user.credits - 1)
+    updateUserCredits(user.credits - 1) // Remove await
     setShowHistory(false)
     setAnalysisStep("complete")
   }
