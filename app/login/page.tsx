@@ -113,15 +113,15 @@ function LoginContent() {
           </form>
 
           <div className="mt-6 text-center">
-            <p className="text-sm text-slate-400">
-              Need access?{' '}
-              <Button variant="link" onClick={() => router.push('/register')} className="p-0 text-green-400">
-                Request account
+            <p className="text-sm text-gray-600">
+              Don't have an account?{' '}
+              <Button variant="link" onClick={() => router.push('/register')} className="p-0">
+                Sign up
               </Button>
             </p>
-            <p className="text-sm text-slate-400 mt-2">
-              <Button variant="link" onClick={() => router.push('/faq')} className="p-0 text-slate-300">
-                System FAQ
+            <p className="text-sm text-gray-600 mt-2">
+              <Button variant="link" onClick={() => router.push('/faq')} className="p-0">
+                FAQ
               </Button>
             </p>
           </div>
@@ -135,8 +135,8 @@ export default function LoginPage() {
   // Force Vercel rebuild - syntax fixed
   return (
     <Suspense fallback={
-      <div className="min-h-screen bg-slate-900 flex items-center justify-center">
-        <div className="animate-spin rounded-full h-32 w-32 border-b-2 border-green-500"></div>
+      <div className="min-h-screen bg-gray-50 flex items-center justify-center">
+        <div className="animate-spin rounded-full h-32 w-32 border-b-2 border-blue-600"></div>
       </div>
     }>
       <LoginContent />
