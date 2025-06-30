@@ -70,6 +70,8 @@ export default function AdminPage() {
   const [creditReason, setCreditReason] = useState("")
   const [showChatbot, setShowChatbot] = useState(false)
 
+  const [dataLoading, setDataLoading] = useState(false)
+
   useEffect(() => {
     if (!isLoading) {
       if (!user) {
@@ -80,11 +82,13 @@ export default function AdminPage() {
         router.push('/queue-testing')
         return
       }
-      loadData()
+      // Don't auto-load data on page load to improve performance
+      // loadData()
     }
   }, [user, isAdmin, isLoading, router])
 
   const loadData = async () => {
+    setDataLoading(true)
     try {
       // Load users
       const { data: usersData, error: usersError } = await db.getAllUsers()
@@ -99,6 +103,8 @@ export default function AdminPage() {
       }
     } catch (error) {
       console.error("Failed to load admin data:", error)
+    } finally {
+      setDataLoading(false)
     }
   }
 
@@ -228,6 +234,19 @@ export default function AdminPage() {
             </div>
             <div className="flex items-center space-x-4">
               <Button
+                onClick={loadData}
+                disabled={dataLoading}
+                variant="outline"
+                className="flex items-center space-x-2"
+              >
+                {dataLoading ? (
+                  <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-orange-600"></div>
+                ) : (
+                  <Users className="h-4 w-4" />
+                )}
+                <span>{dataLoading ? "Loading..." : "Load Data"}</span>
+              </Button>
+              <Button
                 onClick={() => setShowChatbot(!showChatbot)}
                 variant="outline"
                 className="flex items-center space-x-2"
@@ -266,22 +285,36 @@ export default function AdminPage() {
 
           {/* Users Tab */}
           <TabsContent value="users" className="space-y-6">
-            <Card>
-              <CardHeader>
-                <CardTitle className="flex items-center justify-between">
-                  <span>User Management</span>
-                  <div className="flex items-center space-x-2">
-                    <Search className="h-4 w-4 text-gray-400" />
-                    <Input
-                      placeholder="Search users..."
-                      value={searchTerm}
-                      onChange={(e) => setSearchTerm(e.target.value)}
-                      className="w-64"
-                    />
-                  </div>
-                </CardTitle>
-              </CardHeader>
-              <CardContent>
+            {users.length === 0 && !dataLoading && (
+              <Card>
+                <CardContent className="p-8 text-center">
+                  <Users className="h-12 w-12 text-gray-400 mx-auto mb-4" />
+                  <h3 className="text-lg font-semibold text-gray-900 mb-2">No Data Loaded</h3>
+                  <p className="text-gray-600 mb-4">Click "Load Data" to fetch users and payment information.</p>
+                  <Button onClick={loadData} disabled={dataLoading}>
+                    {dataLoading ? "Loading..." : "Load Data"}
+                  </Button>
+                </CardContent>
+              </Card>
+            )}
+            
+            {users.length > 0 && (
+              <Card>
+                <CardHeader>
+                  <CardTitle className="flex items-center justify-between">
+                    <span>User Management ({users.length} users)</span>
+                    <div className="flex items-center space-x-2">
+                      <Search className="h-4 w-4 text-gray-400" />
+                      <Input
+                        placeholder="Search users..."
+                        value={searchTerm}
+                        onChange={(e) => setSearchTerm(e.target.value)}
+                        className="w-64"
+                      />
+                    </div>
+                  </CardTitle>
+                </CardHeader>
+                <CardContent>
                 <div className="grid gap-4">
                   {filteredUsers.map((user) => (
                     <div
@@ -324,6 +357,7 @@ export default function AdminPage() {
                 </div>
               </CardContent>
             </Card>
+            )}
 
             {/* Credit Management */}
             {selectedUser && (
