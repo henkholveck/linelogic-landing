@@ -246,7 +246,7 @@ export default function CreditsPage() {
                       <div className="text-blue-800 text-sm">
                         <p>Send ${selectedPrice} worth of Bitcoin to:</p>
                         <p className="font-mono text-xs break-all bg-white p-2 rounded mt-1">
-                          [BTC_ADDRESS_HERE]
+                          bc1qkq3wz5zmaxq384q05wavzcyzguc4rqm5ypyyku
                         </p>
                         <p className="text-xs mt-2">After sending, enter your transaction ID below.</p>
                       </div>
