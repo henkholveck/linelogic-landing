@@ -7,7 +7,7 @@ import { Button } from "@/components/ui/button"
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import { Input } from "@/components/ui/input"
 import { Alert, AlertDescription } from "@/components/ui/alert"
-import { X, CreditCard, Bitcoin, DollarSign } from "lucide-react"
+import { X, CreditCard, DollarSign } from "lucide-react"
 
 export default function CreditsPage() {
   const { user, isLoading, refreshCredits } = useAuth()
