@@ -51,9 +51,9 @@ function InjectionPurchaseContent() {
 
   const calculateTotal = () => {
     let multiplier = 1
-    if (packageType === 'bulk5') multiplier = 4.5 // 10% discount
-    if (packageType === 'bulk10') multiplier = 8.5 // 15% discount
-    if (packageType === 'custom') multiplier = accountCount * 0.9 // 10% discount for custom
+    if (packageType === 'bulk5') multiplier = 4.25 // 15% discount
+    if (packageType === 'bulk10') multiplier = 8 // 20% discount
+    if (packageType === 'custom') multiplier = accountCount * 0.85 // 15% discount for custom
     
     return Math.round(basePrice * multiplier)
   }
@@ -200,10 +200,10 @@ function InjectionPurchaseContent() {
                   >
                     <div className="font-semibold flex items-center space-x-2">
                       <span>Bulk 5</span>
-                      <Badge variant="secondary">10% off</Badge>
+                      <Badge variant="secondary">15% off</Badge>
                     </div>
                     <div className="text-sm text-gray-600">5 accounts</div>
-                    <div className="text-lg font-bold text-orange-600">${Math.round(basePrice * 4.5)}</div>
+                    <div className="text-lg font-bold text-orange-600">${Math.round(basePrice * 4.25)}</div>
                   </div>
 
                   <div 
@@ -214,10 +214,10 @@ function InjectionPurchaseContent() {
                   >
                     <div className="font-semibold flex items-center space-x-2">
                       <span>Bulk 10</span>
-                      <Badge variant="secondary">15% off</Badge>
+                      <Badge variant="secondary">20% off</Badge>
                     </div>
                     <div className="text-sm text-gray-600">10 accounts</div>
-                    <div className="text-lg font-bold text-orange-600">${Math.round(basePrice * 8.5)}</div>
+                    <div className="text-lg font-bold text-orange-600">${Math.round(basePrice * 8)}</div>
                   </div>
 
                   <div 
@@ -228,10 +228,10 @@ function InjectionPurchaseContent() {
                   >
                     <div className="font-semibold flex items-center space-x-2">
                       <span>Custom</span>
-                      <Badge variant="secondary">10% off</Badge>
+                      <Badge variant="secondary">15% off</Badge>
                     </div>
                     <div className="text-sm text-gray-600">Choose quantity</div>
-                    <div className="text-lg font-bold text-orange-600">${Math.round(basePrice * accountCount * 0.9)}</div>
+                    <div className="text-lg font-bold text-orange-600">${Math.round(basePrice * accountCount * 0.85)}</div>
                   </div>
                 </div>
 

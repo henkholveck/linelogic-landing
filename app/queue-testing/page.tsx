@@ -6,8 +6,8 @@ import { useEffect } from 'react'
 import { Button } from "@/components/ui/button"
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import { Badge } from "@/components/ui/badge"
-import AccountTester from "@/components/AccountTester"
-import { AlertCircle, CreditCard, Activity, Shield, Eye } from "lucide-react"
+import EnhancedDashboard from "@/components/EnhancedDashboard"
+import { AlertCircle, CreditCard } from "lucide-react"
 
 export default function QueueTestingPage() {
   const { user, isLoading, isAdmin } = useAuth()
@@ -47,54 +47,40 @@ export default function QueueTestingPage() {
   return (
     <div className="min-h-screen bg-slate-900">
       {/* Header */}
-      <div className="bg-slate-800 border-b border-slate-700">
+      <div className="bg-white border-b border-gray-200">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="flex justify-between items-center py-6">
             <div>
-              <h1 className="text-3xl font-bold text-green-400">LineLogic</h1>
-              <p className="text-slate-300">Allocation System Diagnostics</p>
-              <div className="flex items-center space-x-4 mt-2">
-                <Badge variant="outline" className="border-green-400 text-green-400 text-xs">
-                  <Activity className="h-3 w-3 mr-1" />
-                  LIVE PIPELINE
-                </Badge>
-                <Badge variant="outline" className="border-blue-400 text-blue-400 text-xs">
-                  <Shield className="h-3 w-3 mr-1" />
-                  ENCRYPTED
-                </Badge>
-                <Badge variant="outline" className="border-orange-400 text-orange-400 text-xs">
-                  <Eye className="h-3 w-3 mr-1" />
-                  PARTNER ACCESS
-                </Badge>
-              </div>
+              <h1 className="text-3xl font-bold text-blue-600">LineLogic</h1>
+              <p className="text-gray-600">Queue Testing & Injection Platform</p>
             </div>
             <div className="flex items-center space-x-4">
               <div className="text-right">
-                <p className="font-semibold text-white">{user.name}</p>
-                <p className="text-sm text-slate-400">{user.email}</p>
+                <p className="font-semibold text-gray-900">{user.name}</p>
+                <p className="text-sm text-gray-600">{user.email}</p>
                 {!user.email_verified && (
                   <Badge variant="destructive" className="text-xs">
-                    Verification Required
+                    Email not verified
                   </Badge>
                 )}
               </div>
               <Badge 
                 variant={user.credits >= 5 ? "default" : "destructive"}
-                className={`flex items-center space-x-1 ${user.credits >= 5 ? 'bg-green-600' : 'bg-red-600'}`}
+                className="flex items-center space-x-1"
               >
                 <CreditCard className="h-3 w-3" />
                 <span>{user.credits} Credits</span>
               </Badge>
-              <Button onClick={() => router.push('/credits')} variant="outline" size="sm" className="border-slate-600 text-slate-300">
-                Add Credits
+              <Button onClick={() => router.push('/credits')} variant="outline" size="sm">
+                Buy Credits
               </Button>
               {isAdmin && (
-                <Button onClick={() => router.push('/admin')} variant="outline" className="border-slate-600 text-slate-300">
-                  System Admin
+                <Button onClick={() => router.push('/admin')} variant="outline">
+                  Admin Panel
                 </Button>
               )}
-              <Button onClick={() => router.push('/logout')} variant="outline" className="border-slate-600 text-slate-300">
-                Disconnect
+              <Button onClick={() => router.push('/logout')} variant="outline">
+                Logout
               </Button>
             </div>
           </div>
@@ -165,8 +151,8 @@ export default function QueueTestingPage() {
           </Card>
         )}
 
-        {/* Account Tester Component */}
-        <AccountTester />
+        {/* Enhanced Dashboard Component */}
+        <EnhancedDashboard />
 
         {/* System Information */}
         <Card className="mt-8 bg-slate-800 border-slate-700">

@@ -47,7 +47,7 @@ const generateAccountDiagnostic = (email: string): AccountDiagnostic => {
   const position = 15000 + (abs % 85000) // 15k-100k range
   const latency = 120 + (abs % 180) // 120-300ms
   const consistency = 65 + (abs % 30) // 65-95%
-  const price = 25 + (abs % 50) // $25-75
+  const price = 55 + (abs % 56) // $55-110 range
   
   const trafficRanks = ['Public', 'Standard', 'Priority', 'VIP']
   const trafficRank = trafficRanks[abs % trafficRanks.length]

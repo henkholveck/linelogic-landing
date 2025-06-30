@@ -18,7 +18,7 @@ CREATE INDEX idx_signup_attempts_email ON public.signup_attempts(email);
 -- Add email_verified column to user_profiles if not exists
 ALTER TABLE public.user_profiles ADD COLUMN IF NOT EXISTS email_verified boolean DEFAULT false;
 
--- Update the user profile creation trigger to NOT grant credits immediately
+-- Update the user profile creation trigger to NOT grant credits
 CREATE OR REPLACE FUNCTION public.handle_new_user()
 RETURNS trigger as $$
 BEGIN
@@ -27,26 +27,26 @@ BEGIN
     new.id,
     new.email,
     coalesce(new.raw_user_meta_data->>'name', split_part(new.email, '@', 1)),
-    0, -- Start with 0 credits until email verified
+    0, -- NO FREE CREDITS - users must purchase
     CASE WHEN new.email_confirmed_at IS NOT NULL THEN true ELSE false END
   );
   RETURN new;
 END;
 $$ language plpgsql security definer;
 
--- Function to grant welcome credits after email verification
+-- Update welcome credits function to NOT grant credits
 CREATE OR REPLACE FUNCTION public.grant_welcome_credits()
 RETURNS trigger as $$
 BEGIN
-  -- Only grant credits if email was just verified and user has 0 credits
+  -- Only update email verification status, NO credit grants
   IF OLD.email_confirmed_at IS NULL AND NEW.email_confirmed_at IS NOT NULL THEN
     UPDATE public.user_profiles 
-    SET credits = 10, email_verified = true, updated_at = timezone('utc'::text, now())
-    WHERE id = NEW.id AND credits = 0;
+    SET email_verified = true, updated_at = timezone('utc'::text, now())
+    WHERE id = NEW.id;
     
-    -- Log the credit grant
+    -- Log verification but no credit grant
     INSERT INTO public.credit_transactions (user_id, amount, type, reason)
-    VALUES (NEW.id, 10, 'credit', 'Welcome bonus - email verified');
+    VALUES (NEW.id, 0, 'verification', 'Email verified - no credits granted');
   END IF;
   
   RETURN NEW;
