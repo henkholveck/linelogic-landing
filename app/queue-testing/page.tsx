@@ -733,13 +733,24 @@ export default function QueueTestingPage() {
       }
     }
 
+    // Show different confirmation messages based on payment type
+    let confirmationMessage = ""
+    
+    if (selectedPaymentType === "venmo") {
+      confirmationMessage = "Payment receipt submitted! Credits will be added to your account upon verification by our team (usually within 1-2 business hours)."
+    } else if (selectedPaymentType === "bitcoin") {
+      confirmationMessage = "Bitcoin transaction submitted! Credits will be automatically added to your account after 1 confirmation (typically 10-60 minutes)."
+    } else if (selectedPaymentType === "ethereum") {
+      confirmationMessage = "Ethereum transaction submitted! Credits will be automatically added to your account after 55 confirmations (typically 10-15 minutes)."
+    }
+
     // Simulate processing
     if (paymentService === "credits") {
-      // DO NOT automatically add credits - this must be done manually by staff
-      alert("Payment receipt submitted! Credits will be added to your account within 1-2 business days after verification.")
+      alert(confirmationMessage)
       setShowBuyCredits(false)
     } else {
       // Continue with injection flow
+      alert(confirmationMessage + " Your injection service will proceed once payment is confirmed.")
       setSelectedPaymentMethod(selectedPaymentType)
       setInjectionStep("processing")
       
@@ -2550,6 +2561,22 @@ export default function QueueTestingPage() {
                   </p>
                 </div>
 
+                {/* Confirmation Requirements */}
+                <div className="bg-blue-50 border border-blue-200 rounded-lg p-4 mb-6">
+                  <div className="text-sm text-blue-800">
+                    <div className="font-semibold mb-2">Credits will be added:</div>
+                    {selectedPaymentType === "venmo" && (
+                      <div>• Upon manual verification by our team (1-2 hours)</div>
+                    )}
+                    {selectedPaymentType === "bitcoin" && (
+                      <div>• After 1 blockchain confirmation (~10-60 minutes)</div>
+                    )}
+                    {selectedPaymentType === "ethereum" && (
+                      <div>• After 55 blockchain confirmations (~10-15 minutes)</div>
+                    )}
+                  </div>
+                </div>
+
                 <div className="mb-6">
                   <label className="block text-sm font-medium text-gray-700 mb-2">
                     {selectedPaymentType === "venmo" ? "Venmo Receipt Number" : "Transaction ID"}
@@ -2558,7 +2585,13 @@ export default function QueueTestingPage() {
                     type="text"
                     value={receiptInput}
                     onChange={(e) => setReceiptInput(e.target.value)}
-                    placeholder={selectedPaymentType === "venmo" ? "Enter receipt number" : "Enter transaction ID"}
+                    placeholder={
+                      selectedPaymentType === "venmo" 
+                        ? "Enter receipt number" 
+                        : selectedPaymentType === "bitcoin"
+                        ? "Enter Bitcoin transaction hash"
+                        : "Enter Ethereum transaction hash"
+                    }
                     className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
                   />
                 </div>

@@ -82,7 +82,7 @@ const faqs = [
   {
     question: "What payment methods do you accept?",
     answer:
-      "We accept multiple payment methods: Venmo for quick mobile payments, Bitcoin (bc1qkq3wz5zmaxq384q05wavzcyzguc4rqm5ypyyku), and Ethereum (0x6FBe192da821d39d9D04d8089D6957F659885632). Contact us after payment with your transaction details.",
+      "We accept Venmo (verified within 1-2 hours), Bitcoin (credited after 1 confirmation ~10-60 minutes), and Ethereum (credited after 55 confirmations ~10-15 minutes). All payments require transaction verification.",
   },
   {
     question: "Can I get a refund?",
@@ -191,9 +191,9 @@ export default function CreditsPage() {
                   : pkg.bestValue
                     ? "border-2 border-green-300 shadow-lg"
                     : "border border-gray-200"
-              } hover:shadow-xl transition-shadow`}
+              } hover:shadow-xl transition-shadow cursor-pointer`}
+              onClick={() => setSelectedPackage(pkg.id)}
             >
-              {/* Disabled package selection - credits must be manually added by staff */}
               {pkg.popular && (
                 <div className="absolute -top-3 left-1/2 transform -translate-x-1/2">
                   <Badge className="bg-orange-600 text-white px-3 py-1">
@@ -230,11 +230,15 @@ export default function CreditsPage() {
                 </div>
 
                 <Button
-                  disabled
-                  className="w-full h-12 bg-gray-300 text-gray-500 cursor-not-allowed"
+                  onClick={() => handlePurchase(pkg)}
+                  className={`w-full h-12 ${
+                    pkg.popular || pkg.bestValue
+                      ? "bg-orange-600 hover:bg-orange-700 text-white"
+                      : "bg-gray-900 hover:bg-gray-800 text-white"
+                  }`}
                 >
                   <CreditCard className="w-4 h-4 mr-2" />
-                  Contact Support for Credits
+                  Purchase Credits
                 </Button>
                   Purchase Credits
                 </Button>
