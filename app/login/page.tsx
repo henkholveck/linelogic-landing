@@ -119,16 +119,12 @@ function LoginContent() {
                 Sign up
               </Button>
             </p>
-            <p className="text-sm text-gray-600 mt-2">
-              <Button variant="link" onClick={() => router.push('/faq')} className="p-0">
-                FAQ
-              </Button>
-            </p>
           </div>
         </CardContent>
       </Card>
     </div>
   )
+}
 }
 
 export default function LoginPage() {
