@@ -16,7 +16,7 @@ interface AuthContextType {
   isLoading: boolean
   isAdmin: boolean
   signIn: (email: string, password: string) => Promise<any>
-  signUp: (email: string, password: string, name: string) => Promise<any>
+  signUp: (email: string, password: string, name: string, ipAddress?: string, userAgent?: string) => Promise<any>
   signOut: () => Promise<void>
   refreshUser: () => Promise<void>
 }
@@ -107,10 +107,10 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     }
   }
 
-  const signUp = async (email: string, password: string, name: string) => {
+  const signUp = async (email: string, password: string, name: string, ipAddress?: string, userAgent?: string) => {
     setIsLoading(true)
     try {
-      const result = await auth.signUp(email, password, name)
+      const result = await auth.signUp(email, password, name, ipAddress, userAgent)
       return result
     } finally {
       setIsLoading(false)

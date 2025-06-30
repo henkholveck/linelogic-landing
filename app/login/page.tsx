@@ -125,7 +125,6 @@ function LoginContent() {
     </div>
   )
 }
-}
 
 export default function LoginPage() {
   // Force Vercel rebuild - syntax fixed
