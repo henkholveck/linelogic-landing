@@ -284,10 +284,13 @@ export default function QueueTestingPage() {
 
     console.log("💾 Saving analysis to database and localStorage...")
     
-    // Save to database
+    // Save to database using proper user ID
     try {
-      const saveResult = await db.saveAnalysisResult(user.hashedEmail, result)
-      console.log("✅ Saved to database:", saveResult)
+      const { data: { user: currentUser } } = await supabase.auth.getUser()
+      if (currentUser) {
+        const saveResult = await db.saveAnalysisResult(currentUser.id, result)
+        console.log("✅ Saved to database:", saveResult)
+      }
     } catch (error) {
       console.warn("⚠️ Failed to save to database, using localStorage only:", error)
     }
@@ -320,16 +323,19 @@ export default function QueueTestingPage() {
     console.log("📚 Loading analysis history...")
     
     try {
-      // Try to load from database first
-      const { data: dbHistory, error } = await db.getAnalysisHistory(user.hashedEmail)
-      
-      if (dbHistory && !error) {
-        console.log(`📚 Loaded ${dbHistory.length} results from database`)
-        const historyResults = dbHistory.map((record: any) => record.analysis_data as DetailedAnalysisResult)
-        setAnalysisHistory(historyResults)
-        return
-      } else {
-        console.warn("⚠️ Failed to load from database:", error)
+      // Try to load from database first using proper user ID
+      const { data: { user: currentUser } } = await supabase.auth.getUser()
+      if (currentUser) {
+        const { data: dbHistory, error } = await db.getAnalysisHistory(currentUser.id)
+        
+        if (dbHistory && !error) {
+          console.log(`📚 Loaded ${dbHistory.length} results from database`)
+          const historyResults = dbHistory.map((record: any) => record.analysis_data as DetailedAnalysisResult)
+          setAnalysisHistory(historyResults)
+          return
+        } else {
+          console.warn("⚠️ Failed to load from database:", error)
+        }
       }
     } catch (error) {
       console.warn("⚠️ Database history load failed:", error)
@@ -548,17 +554,23 @@ export default function QueueTestingPage() {
     const updatedUser = { ...user, credits: newCredits }
     setUser(updatedUser)
     
-    // Use proper database credit deduction
+    // Use proper database credit deduction with actual user ID
     try {
       const creditDifference = user.credits - newCredits
       if (creditDifference > 0) {
-        // Deducting credits
-        const result = await db.deductCredits(user.hashedEmail, creditDifference, "queue_analysis")
-        console.log(`✅ Database credit deduction result:`, result)
+        // Deducting credits - use actual user ID from session
+        const { data: { user: currentUser } } = await supabase.auth.getUser()
+        if (currentUser) {
+          const result = await db.deductCredits(currentUser.id, creditDifference, "queue_analysis")
+          console.log(`✅ Database credit deduction result:`, result)
+        }
       } else if (creditDifference < 0) {
         // Adding credits
-        const result = await db.addCredits(user.hashedEmail, Math.abs(creditDifference), "credit_purchase")
-        console.log(`✅ Database credit addition result:`, result)
+        const { data: { user: currentUser } } = await supabase.auth.getUser()
+        if (currentUser) {
+          const result = await db.addCredits(currentUser.id, Math.abs(creditDifference), "credit_purchase")
+          console.log(`✅ Database credit addition result:`, result)
+        }
       }
     } catch (error) {
       console.warn("⚠️ Failed to update credits in database (using in-memory only):", error)
