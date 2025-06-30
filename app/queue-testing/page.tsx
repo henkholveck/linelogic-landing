@@ -512,18 +512,17 @@ export default function QueueTestingPage() {
 
     console.log(`🔥 CREDIT UPDATE: ${user.credits} → ${newCredits}`)
 
-    // Update user state
+    // Update user state immediately
     const updatedUser = { ...user, credits: newCredits }
     setUser(updatedUser)
     
-    // Update database - this is the source of truth, not localStorage
+    // Try to update database, but don't fail if it's not set up
     try {
       const result = await db.updateUserCredits(user.hashedEmail, newCredits)
       console.log(`✅ Database update result:`, result)
     } catch (error) {
-      console.error("❌ Failed to update credits in database:", error)
-      // Revert user state if database update fails
-      setUser(user)
+      console.warn("⚠️ Failed to update credits in database (using in-memory only):", error)
+      // Don't revert user state - just continue with in-memory credits
     }
   }
 
@@ -1052,21 +1051,42 @@ export default function QueueTestingPage() {
       
       if (session?.user) {
         console.log(`🔍 Loading user profile for:`, session.user.email)
-        const { data: profile } = await db.getUserProfile(session.user.id)
-        if (profile) {
-          console.log(`📊 Loaded profile with ${profile.credits} credits`)
-          const userData: UserData = {
-            email: session.user.email!,
-            name: profile.name,
-            credits: profile.credits,
-            hashedEmail: hashEmail(session.user.email!),
-            emailVerified: true,
-            registrationDate: profile.created_at
+        
+        // Try to get profile from database first
+        try {
+          const { data: profile } = await db.getUserProfile(session.user.id)
+          if (profile) {
+            console.log(`📊 Loaded profile with ${profile.credits} credits`)
+            const userData: UserData = {
+              email: session.user.email!,
+              name: profile.name,
+              credits: profile.credits,
+              hashedEmail: hashEmail(session.user.email!),
+              emailVerified: true,
+              registrationDate: profile.created_at
+            }
+            setUser(userData)
+            setEmail(session.user.email!)
+            setAuthStep("authenticated")
+            return
           }
-          setUser(userData)
-          setEmail(session.user.email!)
-          setAuthStep("authenticated")
+        } catch (error) {
+          console.warn("Failed to load profile from database, using fallback:", error)
         }
+        
+        // Fallback: create a basic user profile for now
+        console.log("📊 Creating fallback user profile")
+        const userData: UserData = {
+          email: session.user.email!,
+          name: session.user.email!.split('@')[0], // Use email prefix as name
+          credits: 100, // Give them some starter credits
+          hashedEmail: hashEmail(session.user.email!),
+          emailVerified: true,
+          registrationDate: new Date().toISOString()
+        }
+        setUser(userData)
+        setEmail(session.user.email!)
+        setAuthStep("authenticated")
       } else {
         setUser(null)
         setAuthStep("login")
