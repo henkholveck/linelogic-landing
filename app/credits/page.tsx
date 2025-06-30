@@ -255,7 +255,7 @@ export default function CreditsPage() {
                       <div className="text-blue-800 text-sm">
                         <p>Send ${selectedPrice} worth of Ethereum to:</p>
                         <p className="font-mono text-xs break-all bg-white p-2 rounded mt-1">
-                          [ETH_ADDRESS_HERE]
+                          0x6FBe192da821d39d9D04d8089D6957F659885632
                         </p>
                         <p className="text-xs mt-2">After sending, enter your transaction ID below.</p>
                       </div>
