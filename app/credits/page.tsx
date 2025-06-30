@@ -230,24 +230,34 @@ export default function CreditsPage() {
                 {paymentMethod && (
                   <div className="bg-blue-50 border border-blue-200 rounded-lg p-4">
                     <h4 className="font-semibold text-blue-900 mb-2">Payment Instructions</h4>
-                    {paymentMethod === 'paypal' && (
-                      <div className="text-blue-800 text-sm">
-                        <p>Send ${selectedPrice} to: <strong>payments@linelogic.com</strong></p>
-                        <p>Include your email in the payment note.</p>
+                    {paymentMethod === 'venmo' && (
+                      <div className="text-blue-800 text-sm space-y-2">
+                        <p>Click the button below to pay via Venmo:</p>
+                        <Button 
+                          onClick={() => window.open(generateVenmoLink(selectedPrice, selectedCredits), '_blank')}
+                          className="w-full bg-blue-500 hover:bg-blue-600"
+                        >
+                          Pay ${selectedPrice} via Venmo
+                        </Button>
+                        <p className="text-xs">After payment, enter your Venmo username below for verification.</p>
                       </div>
                     )}
                     {paymentMethod === 'bitcoin' && (
                       <div className="text-blue-800 text-sm">
                         <p>Send ${selectedPrice} worth of Bitcoin to:</p>
                         <p className="font-mono text-xs break-all bg-white p-2 rounded mt-1">
-                          bc1qxy2kgdygjrsqtzq2n0yrf2493p83kkfjhx0wlh
+                          [BTC_ADDRESS_HERE]
                         </p>
+                        <p className="text-xs mt-2">After sending, enter your transaction ID below.</p>
                       </div>
                     )}
-                    {paymentMethod === 'card' && (
+                    {paymentMethod === 'ethereum' && (
                       <div className="text-blue-800 text-sm">
-                        <p>Contact support for card payment processing:</p>
-                        <p><strong>support@linelogic.com</strong></p>
+                        <p>Send ${selectedPrice} worth of Ethereum to:</p>
+                        <p className="font-mono text-xs break-all bg-white p-2 rounded mt-1">
+                          [ETH_ADDRESS_HERE]
+                        </p>
+                        <p className="text-xs mt-2">After sending, enter your transaction ID below.</p>
                       </div>
                     )}
                   </div>
