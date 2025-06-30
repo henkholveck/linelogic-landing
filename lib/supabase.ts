@@ -164,4 +164,47 @@ export const db = {
       .single()
     return { data, error }
   },
+
+  // Admin functions
+  getAllUsers: async () => {
+    const { data, error } = await supabase
+      .from("user_profiles")
+      .select("*")
+      .order("created_at", { ascending: false })
+    return { data, error }
+  },
+
+  getAllPaymentReceipts: async () => {
+    const { data, error } = await supabase
+      .from("payment_receipts")
+      .select("*")
+      .order("created_at", { ascending: false })
+    return { data, error }
+  },
+
+  updatePaymentReceiptStatus: async (receiptId: string, status: string, adminEmail: string) => {
+    const { data, error } = await supabase
+      .from("payment_receipts")
+      .update({
+        status: status,
+        verified_by: adminEmail,
+        verified_at: new Date().toISOString(),
+      })
+      .eq("id", receiptId)
+    return { data, error }
+  },
+
+  logCreditTransaction: async (transactionData: any) => {
+    const { data, error } = await supabase
+      .from("credit_transactions")
+      .insert({
+        user_id: transactionData.userId,
+        amount: transactionData.amount,
+        type: transactionData.type,
+        reason: transactionData.reason,
+        admin_email: transactionData.adminEmail,
+        created_at: new Date().toISOString(),
+      })
+    return { data, error }
+  },
 }

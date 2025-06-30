@@ -191,9 +191,9 @@ export default function CreditsPage() {
                   : pkg.bestValue
                     ? "border-2 border-green-300 shadow-lg"
                     : "border border-gray-200"
-              } hover:shadow-xl transition-shadow cursor-pointer`}
-              onClick={() => setSelectedPackage(pkg.id)}
+              } hover:shadow-xl transition-shadow`}
             >
+              {/* Disabled package selection - credits must be manually added by staff */}
               {pkg.popular && (
                 <div className="absolute -top-3 left-1/2 transform -translate-x-1/2">
                   <Badge className="bg-orange-600 text-white px-3 py-1">
@@ -230,14 +230,12 @@ export default function CreditsPage() {
                 </div>
 
                 <Button
-                  onClick={() => handlePurchase(pkg)}
-                  className={`w-full h-12 ${
-                    pkg.popular || pkg.bestValue
-                      ? "bg-orange-600 hover:bg-orange-700 text-white"
-                      : "bg-gray-900 hover:bg-gray-800 text-white"
-                  }`}
+                  disabled
+                  className="w-full h-12 bg-gray-300 text-gray-500 cursor-not-allowed"
                 >
                   <CreditCard className="w-4 h-4 mr-2" />
+                  Contact Support for Credits
+                </Button>
                   Purchase Credits
                 </Button>
               </CardContent>
