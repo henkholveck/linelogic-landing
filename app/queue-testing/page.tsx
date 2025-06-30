@@ -1079,7 +1079,7 @@ export default function QueueTestingPage() {
         const userData: UserData = {
           email: session.user.email!,
           name: session.user.email!.split('@')[0], // Use email prefix as name
-          credits: 100, // Give them some starter credits
+          credits: 10, // Users start with 10 credits
           hashedEmail: hashEmail(session.user.email!),
           emailVerified: true,
           registrationDate: new Date().toISOString()
