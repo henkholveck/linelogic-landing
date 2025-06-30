@@ -17,7 +17,7 @@ export default function RootLayout({
   return (
     <html lang="en">
       <body>
-        <MaintenanceCheck enabled={true} />
+        <MaintenanceCheck enabled={false} />
         <AuthProvider>
           {children}
         </AuthProvider>
