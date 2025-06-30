@@ -1,4 +1,8 @@
-"use client"
+// ORIGINAL COMPLEX VERSION - BACKED UP
+// This version had auth issues with credit persistence and history
+// Replaced with simple AuthContext version
+
+/*
 
 import type React from "react"
 
