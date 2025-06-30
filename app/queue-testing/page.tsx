@@ -349,6 +349,38 @@ export default function QueueTestingPage() {
     setAnalysisHistory(history)
   }
 
+  // Refresh user data from database
+  const refreshUserData = async () => {
+    try {
+      const { data: { session }, error: sessionError } = await supabase.auth.getSession()
+      if (sessionError || !session?.user) {
+        console.warn("No valid session for refresh")
+        return
+      }
+
+      console.log("🔄 Refreshing user data from database...")
+      const { data: profile, error } = await db.getUserProfile(session.user.id)
+      if (profile && !error) {
+        console.log("🔄 Successfully refreshed user data:", profile)
+        const userData: UserData = {
+          email: session.user.email!,
+          name: profile.name,
+          credits: profile.credits,
+          hashedEmail: session.user.id,
+          emailVerified: true,
+          registrationDate: profile.created_at
+        }
+        setUser(userData)
+      } else {
+        console.error("❌ Failed to refresh user data:", error)
+        // Don't reset user to null or fallback to 10 credits
+        // Just keep the current user state
+      }
+    } catch (error) {
+      console.error("Failed to refresh user data:", error)
+    }
+  }
+
   // Calculate bulk injection discount
   const calculateInjectionDiscount = (accountCount: number): number => {
     if (accountCount >= 10) return 0.25 // 25% off for 10+
@@ -563,6 +595,9 @@ export default function QueueTestingPage() {
         if (currentUser) {
           const result = await db.deductCredits(currentUser.id, creditDifference, "queue_analysis")
           console.log(`✅ Database credit deduction result:`, result)
+          
+          // Refresh user data to get latest credits from database
+          await refreshUserData()
         }
       } else if (creditDifference < 0) {
         // Adding credits
@@ -570,6 +605,9 @@ export default function QueueTestingPage() {
         if (currentUser) {
           const result = await db.addCredits(currentUser.id, Math.abs(creditDifference), "credit_purchase")
           console.log(`✅ Database credit addition result:`, result)
+          
+          // Refresh user data to get latest credits from database
+          await refreshUserData()
         }
       }
     } catch (error) {
@@ -1265,53 +1303,68 @@ export default function QueueTestingPage() {
       if (session?.user) {
         console.log(`🔍 Loading user profile for:`, session.user.email)
         
-        // Try to get profile from database first (with timeout)
         try {
-          console.log("🔍 Attempting database profile lookup...")
-          const timeoutPromise = new Promise((_, reject) => 
-            setTimeout(() => reject(new Error('Database timeout')), 5000)
-          )
-          const profilePromise = db.getUserProfile(session.user.id)
+          // Give the database a moment to be ready on page refresh
+          if (event === 'SIGNED_IN') {
+            await new Promise(resolve => setTimeout(resolve, 500))
+          }
           
-          const { data: profile, error } = await Promise.race([profilePromise, timeoutPromise]) as any
+          const { data: profile, error } = await db.getUserProfile(session.user.id)
           console.log("🔍 Database lookup result:", { profile, error })
           
           if (profile && !error) {
-            console.log(`📊 Loaded profile with ${profile.credits} credits`)
+            console.log(`📊 Successfully loaded profile with ${profile.credits} credits`)
             const userData: UserData = {
               email: session.user.email!,
               name: profile.name,
               credits: profile.credits,
-              hashedEmail: session.user.id, // Use actual user ID instead of hash
+              hashedEmail: session.user.id,
               emailVerified: true,
               registrationDate: profile.created_at
             }
             setUser(userData)
             setEmail(session.user.email!)
             setAuthStep("authenticated")
-            return
           } else {
-            console.log("🔍 No profile found in database or error occurred:", error)
+            console.log("⚠️ Profile lookup failed, creating fallback user but will retry...")
+            // Don't log out - create temporary user and retry later
+            const userData: UserData = {
+              email: session.user.email!,
+              name: session.user.user_metadata?.name || session.user.email!.split('@')[0],
+              credits: 10, // Temporary fallback
+              hashedEmail: session.user.id,
+              emailVerified: true,
+              registrationDate: new Date().toISOString()
+            }
+            setUser(userData)
+            setEmail(session.user.email!)
+            setAuthStep("authenticated")
+            
+            // Retry after 3 seconds
+            setTimeout(async () => {
+              console.log("🔄 Retrying profile lookup...")
+              const retryResult = await db.getUserProfile(session.user.id)
+              if (retryResult.data && !retryResult.error) {
+                console.log("✅ Retry successful, updating user data")
+                setUser(prev => prev ? { ...prev, credits: retryResult.data.credits } : prev)
+              }
+            }, 3000)
           }
         } catch (error) {
-          console.warn("⚠️ Failed to load profile from database, using fallback:", error)
+          console.warn("⚠️ Database connection issue:", error)
+          // Still don't log out - just use fallback and retry
+          const userData: UserData = {
+            email: session.user.email!,
+            name: session.user.user_metadata?.name || session.user.email!.split('@')[0],
+            credits: 10,
+            hashedEmail: session.user.id,
+            emailVerified: true,
+            registrationDate: new Date().toISOString()
+          }
+          setUser(userData)
+          setEmail(session.user.email!)
+          setAuthStep("authenticated")
         }
-        
-        // Fallback: create a basic user profile for now
-        console.log("📊 Creating fallback user profile")
-        const userData: UserData = {
-          email: session.user.email!,
-          name: session.user.email!.split('@')[0], // Use email prefix as name
-          credits: 10, // Users start with 10 credits
-          hashedEmail: session.user.id, // Use actual user ID
-          emailVerified: true,
-          registrationDate: new Date().toISOString()
-        }
-        console.log("📊 Setting fallback user data:", userData)
-        setUser(userData)
-        setEmail(session.user.email!)
-        setAuthStep("authenticated")
-        console.log("✅ Auth step set to authenticated")
       } else {
         console.log("🚪 No session, setting to login")
         setUser(null)
