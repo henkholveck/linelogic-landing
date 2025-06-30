@@ -309,7 +309,7 @@ export default function CreditsPage() {
                 </Button>
 
                 <p className="text-xs text-gray-500 text-center">
-                  Credits will be added to your account after payment verification (usually within 24 hours)
+                  Credits will be manually added to your account after payment verification (usually within 24 hours)
                 </p>
               </CardContent>
             </Card>
