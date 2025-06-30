@@ -838,9 +838,9 @@ export default function QueueTestingPage() {
   // #region UI Rendering
   const renderAuthForms = () => (
     <div className="max-w-md mx-auto mt-10">
-      <Card className="bg-gray-800 border-gray-700">
+      <Card className="bg-white border-gray-200 shadow-lg">
         <CardHeader>
-          <CardTitle className="text-center text-2xl text-green-400">
+          <CardTitle className="text-center text-2xl text-blue-600">
             {authStep === "login" && "Welcome Back"}
             {authStep === "register" && "Create Your Account"}
             {authStep === "verify-email" && "Verify Your Email"}
@@ -855,24 +855,24 @@ export default function QueueTestingPage() {
               </TabsList>
               <TabsContent value="login">
                 <form onSubmit={handleLogin} className="space-y-4 mt-4">
-                  <Input type="email" placeholder="Email" value={loginEmail} onChange={(e) => setLoginEmail(e.target.value)} required className="bg-gray-700 border-gray-600 text-white" />
+                  <Input type="email" placeholder="Email" value={loginEmail} onChange={(e) => setLoginEmail(e.target.value)} required className="bg-white border-gray-300" />
                   <div className="relative">
-                    <Input type={showPassword ? "text" : "password"} placeholder="Password" value={loginPassword} onChange={(e) => setLoginPassword(e.target.value)} required className="bg-gray-700 border-gray-600 text-white" />
-                    <button type="button" onClick={() => setShowPassword(!showPassword)} className="absolute inset-y-0 right-0 pr-3 flex items-center text-gray-400">
+                    <Input type={showPassword ? "text" : "password"} placeholder="Password" value={loginPassword} onChange={(e) => setLoginPassword(e.target.value)} required className="bg-white border-gray-300" />
+                    <button type="button" onClick={() => setShowPassword(!showPassword)} className="absolute inset-y-0 right-0 pr-3 flex items-center text-gray-600">
                       {showPassword ? <EyeOff /> : <Eye />}
                     </button>
                   </div>
-                  <Button type="submit" className="w-full bg-green-600 hover:bg-green-700" disabled={authLoading}>
+                  <Button type="submit" className="w-full bg-blue-600 hover:bg-blue-700 text-white" disabled={authLoading}>
                     {authLoading ? <Loader2 className="animate-spin" /> : "Login"}
                   </Button>
                 </form>
               </TabsContent>
               <TabsContent value="register">
                 <form onSubmit={handleRegister} className="space-y-4 mt-4">
-                  <Input type="text" placeholder="Full Name" value={registerName} onChange={(e) => setRegisterName(e.target.value)} required className="bg-gray-700 border-gray-600 text-white" />
-                  <Input type="email" placeholder="Email" value={registerEmail} onChange={(e) => setRegisterEmail(e.target.value)} required className="bg-gray-700 border-gray-600 text-white" />
-                  <Input type="password" placeholder="Password (min. 6 characters)" value={registerPassword} onChange={(e) => setRegisterPassword(e.target.value)} required className="bg-gray-700 border-gray-600 text-white" />
-                  <Button type="submit" className="w-full bg-green-600 hover:bg-green-700" disabled={authLoading}>
+                  <Input type="text" placeholder="Full Name" value={registerName} onChange={(e) => setRegisterName(e.target.value)} required className="bg-white border-gray-300" />
+                  <Input type="email" placeholder="Email" value={registerEmail} onChange={(e) => setRegisterEmail(e.target.value)} required className="bg-white border-gray-300" />
+                  <Input type="password" placeholder="Password (min. 6 characters)" value={registerPassword} onChange={(e) => setRegisterPassword(e.target.value)} required className="bg-white border-gray-300" />
+                  <Button type="submit" className="w-full bg-blue-600 hover:bg-blue-700 text-white" disabled={authLoading}>
                     {authLoading ? <Loader2 className="animate-spin" /> : "Register"}
                   </Button>
                 </form>
@@ -880,12 +880,12 @@ export default function QueueTestingPage() {
             </Tabs>
           ) : (
             <form onSubmit={handleVerifyEmail} className="space-y-4 mt-4">
-              <p className="text-center text-gray-300">A verification code has been sent to your console.</p>
-              <Input type="text" placeholder="Verification Code" value={verificationCode} onChange={(e) => setVerificationCode(e.target.value)} required className="bg-gray-700 border-gray-600 text-white" />
-              <Button type="submit" className="w-full bg-green-600 hover:bg-green-700" disabled={authLoading}>
+              <p className="text-center text-gray-600">A verification code has been sent to your console.</p>
+              <Input type="text" placeholder="Verification Code" value={verificationCode} onChange={(e) => setVerificationCode(e.target.value)} required className="bg-white border-gray-300" />
+              <Button type="submit" className="w-full bg-blue-600 hover:bg-blue-700 text-white" disabled={authLoading}>
                 {authLoading ? <Loader2 className="animate-spin" /> : "Verify & Login"}
               </Button>
-              <Button type="button" variant="link" onClick={resendVerificationCode} className="w-full text-green-400">Resend Code</Button>
+              <Button type="button" variant="link" onClick={resendVerificationCode} className="w-full text-blue-600">Resend Code</Button>
             </form>
           )}
           {authError && (
@@ -900,9 +900,9 @@ export default function QueueTestingPage() {
   );
 
   const renderAnalysisResults = (result: DetailedAnalysisResult) => (
-    <Card className="bg-gray-800 border-gray-700 mt-6">
+    <Card className="bg-white border-gray-200 shadow-lg mt-6">
       <CardHeader>
-        <CardTitle className="flex justify-between items-center">
+        <CardTitle className="flex justify-between items-center text-gray-900">
           <span>Analysis for: {result.email}</span>
           <Badge variant={result.riskLevel === 'low' ? 'default' : result.riskLevel === 'medium' ? 'secondary' : 'destructive'}>
             {result.riskLevel.toUpperCase()} RISK
@@ -917,24 +917,24 @@ export default function QueueTestingPage() {
             <TabsTrigger value="history">History</TabsTrigger>
           </TabsList>
           <TabsContent value="overview" className="mt-4">
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-              <p>Current Position: <span className="font-bold text-green-400">{result.currentPosition.toLocaleString()}</span></p>
-              <p>Est. Improvement: <span className="font-bold text-yellow-400">{result.estimatedImprovement.toLocaleString()}</span></p>
-              <p>Account Health: <span className="font-bold text-green-400">{result.accountHealth}%</span></p>
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-4 text-gray-900">
+              <p>Current Position: <span className="font-bold text-blue-600">{result.currentPosition.toLocaleString()}</span></p>
+              <p>Est. Improvement: <span className="font-bold text-orange-500">{result.estimatedImprovement.toLocaleString()}</span></p>
+              <p>Account Health: <span className="font-bold text-green-600">{result.accountHealth}%</span></p>
               <p>Recommended Action: <span className="font-bold">{result.recommendedAction}</span></p>
             </div>
             <div className="mt-4">
-              <Button onClick={handleStartEvaluation} className="w-full bg-green-600 hover:bg-green-700">
+              <Button onClick={handleStartEvaluation} className="w-full bg-blue-600 hover:bg-blue-700 text-white">
                 <Zap className="mr-2 h-4 w-4" /> Start Injection Evaluation
               </Button>
             </div>
           </TabsContent>
-          <TabsContent value="details" className="mt-4">
+          <TabsContent value="details" className="mt-4 text-gray-900">
              <p>Account Age: {result.accountAge} days</p>
              <p>Success Rate: {result.successRate}%</p>
              <p>IP Reputation: {result.ipReputation}%</p>
           </TabsContent>
-          <TabsContent value="history" className="mt-4">
+          <TabsContent value="history" className="mt-4 text-gray-900">
             <ul>
               {result.positionHistory.map((h, i) => (
                 <li key={i}>{h.date}: Position {h.position} for {h.event}</li>
@@ -950,14 +950,14 @@ export default function QueueTestingPage() {
     <div>
       <header className="flex justify-between items-center mb-6">
         <div>
-          <h1 className="text-2xl font-bold text-green-400">LineLogic</h1>
-          <p className="text-gray-400">Queue Analysis & Injection Tool</p>
+          <h1 className="text-2xl font-bold text-blue-600">LineLogic</h1>
+          <p className="text-gray-600">Queue Analysis & Injection Tool</p>
         </div>
         {user && (
           <div className="flex items-center space-x-4">
             <div className="text-right">
-              <p className="font-semibold">{user.name}</p>
-              <p className="text-sm text-gray-400">{user.email}</p>
+              <p className="font-semibold text-gray-900">{user.name}</p>
+              <p className="text-sm text-gray-600">{user.email}</p>
             </div>
             <Button onClick={() => handleBuyCredits(10, 20)} variant="secondary">
               <Sparkles className="mr-2 h-4 w-4" /> {user.credits} Credits
@@ -975,9 +975,9 @@ export default function QueueTestingPage() {
           <div>Injection flow UI here</div>
         ) : (
           // Render Analysis Flow
-          <Card className="bg-gray-800 border-gray-700">
+          <Card className="bg-white border-gray-200 shadow-lg">
             <CardHeader>
-              <CardTitle>Account Analysis</CardTitle>
+              <CardTitle className="text-gray-900">Account Analysis</CardTitle>
             </CardHeader>
             <CardContent>
               {analysisStep === 'idle' && (
@@ -987,26 +987,26 @@ export default function QueueTestingPage() {
                     placeholder="Enter email to analyze"
                     value={email}
                     onChange={(e) => setEmail(e.target.value)}
-                    className="bg-gray-700 border-gray-600 text-white"
+                    className="bg-white border-gray-300"
                   />
-                  <Button type="submit" className="w-full mt-4 bg-green-600 hover:bg-green-700" disabled={!email || (user?.credits ?? 0) < 5}>
+                  <Button type="submit" className="w-full mt-4 bg-blue-600 hover:bg-blue-700 text-white" disabled={!email || (user?.credits ?? 0) < 5}>
                     Analyze (5 Credits)
                   </Button>
                 </form>
               )}
               {analysisStep === 'analyzing' && (
                 <div>
-                  <p>Analyzing...</p>
+                  <p className="text-gray-900">Analyzing...</p>
                   <Progress value={analysisProgress} className="w-full" />
                   <ul className="mt-2">
-                    {analysisSteps.map((step, i) => <li key={i}>{step}</li>)}
+                    {analysisSteps.map((step, i) => <li key={i} className="text-gray-700">{step}</li>)}
                   </ul>
                 </div>
               )}
               {analysisStep === 'complete' && analysisResult && (
                 <div>
                   {renderAnalysisResults(analysisResult)}
-                  <Button onClick={resetToIdle} className="w-full mt-4">Analyze Another</Button>
+                  <Button onClick={resetToIdle} className="w-full mt-4 bg-blue-600 hover:bg-blue-700 text-white">Analyze Another</Button>
                 </div>
               )}
             </CardContent>
@@ -1077,7 +1077,7 @@ export default function QueueTestingPage() {
   }, [])
 
   return (
-    <div className="min-h-screen bg-gray-900 text-white p-4 sm:p-6 lg:p-8">
+    <div className="min-h-screen bg-white p-4 sm:p-6 lg:p-8">
       <div className="max-w-7xl mx-auto">
         {authStep !== "authenticated" ? renderAuthForms() : renderMainApp()}
       </div>
