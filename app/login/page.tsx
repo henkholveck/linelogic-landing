@@ -113,10 +113,15 @@ export default function LoginPage() {
           </form>
 
           <div className="mt-6 text-center">
-            <p className="text-sm text-gray-600">
-              Don't have an account?{' '}
-              <Button variant="link" onClick={() => router.push('/register')} className="p-0">
-                Sign up
+            <p className="text-sm text-slate-400">
+              Need access?{' '}
+              <Button variant="link" onClick={() => router.push('/register')} className="p-0 text-green-400">
+                Request account
+              </Button>
+            </p>
+            <p className="text-sm text-slate-400 mt-2">
+              <Button variant="link" onClick={() => router.push('/faq')} className="p-0 text-slate-300">
+                System FAQ
               </Button>
             </p>
           </div>

@@ -70,17 +70,16 @@ export default function RegisterPage() {
 
   if (success) {
     return (
-      <div className="min-h-screen bg-gray-50 flex items-center justify-center">
-        <Card className="w-full max-w-md">
+      <div className="min-h-screen bg-slate-900 flex items-center justify-center">
+        <Card className="w-full max-w-md bg-slate-800 border-slate-700">
           <CardContent className="text-center py-8">
-            <div className="text-green-600 text-6xl mb-4">✓</div>
-            <h2 className="text-2xl font-bold text-gray-900 mb-2">Account Created!</h2>
-            <p className="text-gray-600 mb-4">
-              Please check your email to verify your account. 
-              You'll receive 10 free credits after verification.
+            <div className="text-green-400 text-6xl mb-4">✓</div>
+            <h2 className="text-2xl font-bold text-white mb-2">Access Requested</h2>
+            <p className="text-slate-300 mb-4">
+              Verify your email to receive diagnostic credits and system access.
             </p>
-            <p className="text-sm text-gray-500">
-              Redirecting to login page...
+            <p className="text-sm text-slate-400">
+              Redirecting to authentication...
             </p>
           </CardContent>
         </Card>
@@ -89,22 +88,22 @@ export default function RegisterPage() {
   }
 
   return (
-    <div className="min-h-screen bg-gray-50 flex items-center justify-center">
-      <Card className="w-full max-w-md">
+    <div className="min-h-screen bg-slate-900 flex items-center justify-center">
+      <Card className="w-full max-w-md bg-slate-800 border-slate-700">
         <CardHeader className="text-center">
-          <CardTitle className="text-3xl font-bold text-blue-600">LineLogic</CardTitle>
-          <p className="text-gray-600">Create your account</p>
+          <CardTitle className="text-3xl font-bold text-green-400">LineLogic</CardTitle>
+          <p className="text-slate-400">Request system access</p>
         </CardHeader>
         <CardContent>
           <form onSubmit={handleSubmit} className="space-y-4">
             {error && (
-              <Alert variant="destructive">
-                <AlertDescription>{error}</AlertDescription>
+              <Alert variant="destructive" className="bg-red-900/20 border-red-500">
+                <AlertDescription className="text-red-300">{error}</AlertDescription>
               </Alert>
             )}
             
             <div>
-              <label htmlFor="name" className="block text-sm font-medium text-gray-700 mb-1">
+              <label htmlFor="name" className="block text-sm font-medium text-slate-300 mb-1">
                 Full Name
               </label>
               <Input
@@ -114,11 +113,12 @@ export default function RegisterPage() {
                 onChange={(e) => setName(e.target.value)}
                 required
                 placeholder="Enter your full name"
+                className="bg-slate-700 border-slate-600 text-white"
               />
             </div>
 
             <div>
-              <label htmlFor="email" className="block text-sm font-medium text-gray-700 mb-1">
+              <label htmlFor="email" className="block text-sm font-medium text-slate-300 mb-1">
                 Email
               </label>
               <Input
@@ -128,11 +128,12 @@ export default function RegisterPage() {
                 onChange={(e) => setEmail(e.target.value)}
                 required
                 placeholder="Enter your email"
+                className="bg-slate-700 border-slate-600 text-white"
               />
             </div>
 
             <div>
-              <label htmlFor="password" className="block text-sm font-medium text-gray-700 mb-1">
+              <label htmlFor="password" className="block text-sm font-medium text-slate-300 mb-1">
                 Password
               </label>
               <Input
@@ -143,23 +144,29 @@ export default function RegisterPage() {
                 required
                 placeholder="Enter your password"
                 minLength={6}
+                className="bg-slate-700 border-slate-600 text-white"
               />
             </div>
 
             <Button 
               type="submit" 
-              className="w-full" 
+              className="w-full bg-green-600 hover:bg-green-700 text-black font-semibold" 
               disabled={loading || isLoading}
             >
-              {loading || isLoading ? 'Creating account...' : 'Create Account'}
+              {loading || isLoading ? 'Processing request...' : 'Request Access'}
             </Button>
           </form>
 
           <div className="mt-6 text-center">
-            <p className="text-sm text-gray-600">
-              Already have an account?{' '}
-              <Button variant="link" onClick={() => router.push('/login')} className="p-0">
+            <p className="text-sm text-slate-400">
+              Already have access?{' '}
+              <Button variant="link" onClick={() => router.push('/login')} className="p-0 text-green-400">
                 Sign in
+              </Button>
+            </p>
+            <p className="text-sm text-slate-400 mt-2">
+              <Button variant="link" onClick={() => router.push('/faq')} className="p-0 text-slate-300">
+                System FAQ
               </Button>
             </p>
           </div>

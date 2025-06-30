@@ -21,11 +21,11 @@ export default function HomePage() {
   }, [user, isLoading, router])
 
   return (
-    <div className="min-h-screen bg-gray-50 flex items-center justify-center">
+    <div className="min-h-screen bg-slate-900 flex items-center justify-center">
       <div className="text-center">
-        <h1 className="text-4xl font-bold text-blue-600 mb-4">LineLogic</h1>
-        <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-600 mx-auto"></div>
-        <p className="mt-4 text-gray-600">Loading...</p>
+        <h1 className="text-4xl font-bold text-green-400 mb-4">LineLogic</h1>
+        <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-green-400 mx-auto"></div>
+        <p className="mt-4 text-slate-300">Establishing secure connection...</p>
       </div>
     </div>
   )
