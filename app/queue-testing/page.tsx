@@ -1052,9 +1052,17 @@ export default function QueueTestingPage() {
       if (session?.user) {
         console.log(`🔍 Loading user profile for:`, session.user.email)
         
-        // Try to get profile from database first
+        // Try to get profile from database first (with timeout)
         try {
-          const { data: profile } = await db.getUserProfile(session.user.id)
+          console.log("🔍 Attempting database profile lookup...")
+          const timeoutPromise = new Promise((_, reject) => 
+            setTimeout(() => reject(new Error('Database timeout')), 3000)
+          )
+          const profilePromise = db.getUserProfile(session.user.id)
+          
+          const { data: profile } = await Promise.race([profilePromise, timeoutPromise]) as any
+          console.log("🔍 Database lookup result:", profile)
+          
           if (profile) {
             console.log(`📊 Loaded profile with ${profile.credits} credits`)
             const userData: UserData = {
@@ -1069,9 +1077,11 @@ export default function QueueTestingPage() {
             setEmail(session.user.email!)
             setAuthStep("authenticated")
             return
+          } else {
+            console.log("🔍 No profile found in database, using fallback")
           }
         } catch (error) {
-          console.warn("Failed to load profile from database, using fallback:", error)
+          console.warn("⚠️ Failed to load profile from database, using fallback:", error)
         }
         
         // Fallback: create a basic user profile for now
@@ -1084,10 +1094,13 @@ export default function QueueTestingPage() {
           emailVerified: true,
           registrationDate: new Date().toISOString()
         }
+        console.log("📊 Setting fallback user data:", userData)
         setUser(userData)
         setEmail(session.user.email!)
         setAuthStep("authenticated")
+        console.log("✅ Auth step set to authenticated")
       } else {
+        console.log("🚪 No session, setting to login")
         setUser(null)
         setAuthStep("login")
       }
