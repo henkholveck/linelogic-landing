@@ -751,7 +751,7 @@ export default function QueueTestingPage() {
     // Show payment options instead of immediately adding credits
   }
 
-  const handleViewHistoryResult = (result: DetailedAnalysisResult) => {
+  const handleViewHistoryResult = async (result: DetailedAnalysisResult) => {
     if (!user || user.credits < 1) {
       alert("You need 1 credit to view historical results.")
       return
