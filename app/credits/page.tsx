@@ -201,28 +201,28 @@ export default function CreditsPage() {
                   </label>
                   <div className="grid grid-cols-3 gap-2">
                     <Button
-                      variant={paymentMethod === 'paypal' ? 'default' : 'outline'}
-                      onClick={() => setPaymentMethod('paypal')}
+                      variant={paymentMethod === 'venmo' ? 'default' : 'outline'}
+                      onClick={() => setPaymentMethod('venmo')}
                       className="flex flex-col items-center p-4"
                     >
                       <DollarSign className="h-5 w-5 mb-1" />
-                      <span className="text-xs">PayPal</span>
+                      <span className="text-xs">Venmo</span>
                     </Button>
                     <Button
                       variant={paymentMethod === 'bitcoin' ? 'default' : 'outline'}
                       onClick={() => setPaymentMethod('bitcoin')}
                       className="flex flex-col items-center p-4"
                     >
-                      <Bitcoin className="h-5 w-5 mb-1" />
+                      <CreditCard className="h-5 w-5 mb-1" />
                       <span className="text-xs">Bitcoin</span>
                     </Button>
                     <Button
-                      variant={paymentMethod === 'card' ? 'default' : 'outline'}
-                      onClick={() => setPaymentMethod('card')}
+                      variant={paymentMethod === 'ethereum' ? 'default' : 'outline'}
+                      onClick={() => setPaymentMethod('ethereum')}
                       className="flex flex-col items-center p-4"
                     >
                       <CreditCard className="h-5 w-5 mb-1" />
-                      <span className="text-xs">Card</span>
+                      <span className="text-xs">Ethereum</span>
                     </Button>
                   </div>
                 </div>
