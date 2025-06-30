@@ -1,0 +1,422 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>LineLogic - We'll Be Right Back</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'SF Pro Display', 'Segoe UI', Roboto, sans-serif;
+            background: #ffffff;
+            color: #1d1d1f;
+            min-height: 100vh;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            overflow: hidden;
+            margin: 0;
+            padding: 0;
+        }
+
+        /* Warp Background Container */
+        .warp-container {
+            position: relative;
+            width: 100vw;
+            height: 100vh;
+            border-radius: 0;
+            overflow: hidden;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        /* Warp Background Effect - Updated with proper parameters */
+        .warp-background {
+            pointer-events: none;
+            position: absolute;
+            left: 0;
+            top: 0;
+            width: 100%;
+            height: 100%;
+            overflow: hidden;
+            perspective: 100px; /* Default perspective */
+            transform-style: preserve-3d;
+        }
+
+        /* Grid Sides - Updated grid color and beam configuration */
+        .grid-side {
+            position: absolute;
+            transform-style: preserve-3d;
+            background-size: 5% 5%; /* beamSize: 5% */
+            background: 
+                linear-gradient(rgba(0,0,0,0.08) 0 1px, transparent 1px 5%) 50% -0.5px / 5% 5%,
+                linear-gradient(90deg, rgba(0,0,0,0.08) 0 1px, transparent 1px 5%) 50% 50% / 5% 5%;
+        }
+
+        .grid-top {
+            width: 100%;
+            height: 100vh;
+            transform-origin: 50% 0%;
+            transform: rotateX(-90deg);
+            z-index: 1;
+        }
+
+        .grid-bottom {
+            width: 100%;
+            height: 100vh;
+            top: 100%;
+            transform-origin: 50% 0%;
+            transform: rotateX(-90deg);
+        }
+
+        .grid-left {
+            width: 100vh;
+            height: 100vh;
+            left: 0;
+            top: 0;
+            transform-origin: 0% 0%;
+            transform: rotate(90deg) rotateX(-90deg);
+        }
+
+        .grid-right {
+            width: 100vh;
+            height: 100vh;
+            right: 0;
+            top: 0;
+            transform-origin: 100% 0%;
+            transform: rotate(-90deg) rotateX(-90deg);
+        }
+
+        /* Animated Beams - 3 beams per side as per default */
+        .beam {
+            position: absolute;
+            top: 0;
+            width: 5%; /* beamSize: 5% */
+            aspect-ratio: 1/8;
+            background: linear-gradient(#0071e3, transparent);
+            animation: beam-flow 3s linear infinite; /* beamDuration: 3s */
+        }
+
+        @keyframes beam-flow {
+            0% { 
+                transform: translateY(100vh) translateX(-50%); 
+                opacity: 0;
+            }
+            10% { opacity: 0.4; }
+            90% { opacity: 0.4; }
+            100% { 
+                transform: translateY(-100%) translateX(-50%); 
+                opacity: 0;
+            }
+        }
+
+        /* 3 beams per side with proper delays (beamDelayMin: 0, beamDelayMax: 3) */
+        .beam:nth-child(1) { 
+            left: 25%; 
+            animation-delay: 0s; /* beamDelayMin */
+            background: linear-gradient(#0071e3, transparent); 
+        }
+        .beam:nth-child(2) { 
+            left: 50%; 
+            animation-delay: 1.5s; /* mid-range delay */
+            background: linear-gradient(#1d1d1f, transparent); 
+        }
+        .beam:nth-child(3) { 
+            left: 75%; 
+            animation-delay: 3s; /* beamDelayMax */
+            background: linear-gradient(#0071e3, transparent); 
+        }
+
+        /* Content */
+        .content {
+            position: relative;
+            z-index: 10;
+            text-align: center;
+            max-width: 600px;
+            padding: 2rem;
+            margin: 0 auto;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .logo {
+            font-size: 3rem;
+            font-weight: 600;
+            color: #1d1d1f;
+            margin-bottom: 2rem;
+            letter-spacing: -0.02em;
+        }
+
+        .message {
+            font-size: 2.5rem;
+            font-weight: 600;
+            margin-bottom: 1.5rem;
+            color: #1d1d1f;
+            letter-spacing: -0.02em;
+            line-height: 1.2;
+        }
+
+        .subtitle {
+            font-size: 1.2rem;
+            color: #86868b;
+            margin-bottom: 3rem;
+            line-height: 1.5;
+        }
+
+        .status {
+            font-size: 1rem;
+            color: #86868b;
+            margin-bottom: 3rem;
+            opacity: 0.8;
+        }
+
+        /* Newsletter */
+        .newsletter {
+            background: rgba(0, 0, 0, 0.02);
+            border: 1px solid rgba(0, 0, 0, 0.1);
+            border-radius: 16px;
+            padding: 2rem;
+            margin-bottom: 2rem;
+        }
+
+        .newsletter h3 {
+            font-size: 1.3rem;
+            font-weight: 600;
+            margin-bottom: 0.5rem;
+            color: #1d1d1f;
+        }
+
+        .newsletter p {
+            color: #86868b;
+            margin-bottom: 1.5rem;
+            font-size: 1rem;
+        }
+
+        .signup-form {
+            display: flex;
+            gap: 0.5rem;
+            max-width: 400px;
+            margin: 0 auto;
+            width: 100%;
+            justify-content: center;
+        }
+
+        .email-input {
+            flex: 1;
+            padding: 12px 16px;
+            border: 1px solid rgba(0, 0, 0, 0.2);
+            border-radius: 8px;
+            background: #ffffff;
+            color: #1d1d1f;
+            font-size: 1rem;
+            outline: none;
+            transition: border-color 0.3s ease;
+        }
+
+        .email-input::placeholder {
+            color: #86868b;
+        }
+
+        .email-input:focus {
+            border-color: #0071e3;
+        }
+
+        .signup-btn {
+            padding: 12px 24px;
+            background: #0071e3;
+            color: #ffffff;
+            border: none;
+            border-radius: 8px;
+            font-size: 1rem;
+            font-weight: 500;
+            cursor: pointer;
+            transition: opacity 0.3s ease;
+            white-space: nowrap;
+        }
+
+        .signup-btn:hover {
+            opacity: 0.8;
+        }
+
+        .signup-btn:disabled {
+            opacity: 0.5;
+            cursor: not-allowed;
+        }
+
+        .success-message {
+            color: #10b981;
+            margin-top: 1rem;
+            font-size: 0.9rem;
+            display: none;
+        }
+
+        .contact {
+            color: #86868b;
+            font-size: 1rem;
+        }
+
+        .email-link {
+            color: #0071e3;
+            text-decoration: none;
+            transition: opacity 0.3s ease;
+        }
+
+        .email-link:hover {
+            opacity: 0.7;
+        }
+
+        /* Mobile */
+        @media (max-width: 768px) {
+            .content {
+                padding: 1rem;
+            }
+            
+            .logo {
+                font-size: 2.2rem;
+            }
+            
+            .message {
+                font-size: 2rem;
+            }
+            
+            .subtitle {
+                font-size: 1.1rem;
+            }
+
+            .signup-form {
+                flex-direction: column;
+            }
+
+            .newsletter {
+                padding: 1.5rem;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="warp-container">
+        <!-- Warp Background -->
+        <div class="warp-background">
+            <div class="grid-side grid-top">
+                <div class="beam"></div>
+                <div class="beam"></div>
+                <div class="beam"></div>
+            </div>
+            <div class="grid-side grid-bottom"></div>
+            <div class="grid-side grid-left"></div>
+            <div class="grid-side grid-right"></div>
+        </div>
+
+        <!-- Content -->
+        <div class="content">
+            <div class="logo">LineLogic</div>
+            
+            <h1 class="message">We'll be right back.</h1>
+            
+            <p class="subtitle">
+                Making some magic happen behind the scenes.
+            </p>
+
+            <div class="status" id="status">Brewing something special...</div>
+
+            <div class="newsletter">
+                <h3>Want to know the minute we launch again?</h3>
+                <p>Get notified when we're back online.</p>
+                <form class="signup-form" id="signup-form">
+                    <input 
+                        type="email" 
+                        class="email-input" 
+                        placeholder="Enter your email"
+                        required
+                        id="email-input"
+                    >
+                    <button type="submit" class="signup-btn" id="signup-btn">Notify Me</button>
+                </form>
+                <div class="success-message" id="success-message">
+                    Thanks! We'll let you know when we're back.
+                </div>
+            </div>
+
+            <div class="contact">
+                Questions? <a href="mailto:support@linelogic.com" class="email-link">support@linelogic.com</a>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // Fun rotating status messages
+        const statusMessages = [
+            "Brewing something special...",
+            "Polishing the pixels...",
+            "Teaching our servers new tricks...",
+            "Adding more awesome...",
+            "Making it butter smooth...",
+            "Sprinkling some magic dust...",
+            "Almost there...",
+            "Putting the finishing touches..."
+        ];
+
+        let messageIndex = 0;
+        const statusElement = document.getElementById('status');
+
+        function updateStatus() {
+            statusElement.style.opacity = '0';
+            setTimeout(() => {
+                statusElement.textContent = statusMessages[messageIndex];
+                statusElement.style.opacity = '1';
+                messageIndex = (messageIndex + 1) % statusMessages.length;
+            }, 300);
+        }
+
+        // Change status message every 3 seconds
+        setInterval(updateStatus, 3000);
+        statusElement.style.transition = 'opacity 0.3s ease';
+
+        // Newsletter signup
+        document.getElementById('signup-form').addEventListener('submit', function(e) {
+            e.preventDefault();
+            
+            const emailInput = document.getElementById('email-input');
+            const submitBtn = document.getElementById('signup-btn');
+            const successMessage = document.getElementById('success-message');
+            
+            const email = emailInput.value.trim();
+            
+            if (!email) return;
+            
+            // Disable form
+            submitBtn.disabled = true;
+            submitBtn.textContent = 'Adding...';
+            
+            // Simulate API call (replace with actual endpoint)
+            setTimeout(() => {
+                // Show success message
+                successMessage.style.display = 'block';
+                emailInput.style.display = 'none';
+                submitBtn.style.display = 'none';
+                
+                // Store email locally for now (replace with actual backend)
+                console.log('Newsletter signup:', email);
+                
+                // Reset after 3 seconds
+                setTimeout(() => {
+                    emailInput.style.display = 'block';
+                    submitBtn.style.display = 'block';
+                    successMessage.style.display = 'none';
+                    emailInput.value = '';
+                    submitBtn.disabled = false;
+                    submitBtn.textContent = 'Notify Me';
+                }, 3000);
+            }, 1000);
+        });
+    </script>
+</body>
+</html>
