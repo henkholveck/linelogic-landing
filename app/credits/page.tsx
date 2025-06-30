@@ -335,10 +335,10 @@ export default function CreditsPage() {
               <div>
                 <h3 className="font-semibold text-gray-900 mb-2">Payment info:</h3>
                 <ul className="space-y-1 text-gray-600">
-                  <li>• All payments verified manually</li>
-                  <li>• Credits added within 24 hours</li>
-                  <li>• Secure payment processing</li>
-                  <li>• Full refund policy</li>
+                  <li>• All payments verified manually by our team</li>
+                  <li>• Credits added within 24 hours of verification</li>
+                  <li>• Venmo, Bitcoin, and Ethereum accepted</li>
+                  <li>• Secure verification process</li>
                 </ul>
               </div>
             </div>
