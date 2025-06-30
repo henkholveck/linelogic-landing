@@ -1561,6 +1561,9 @@ export default function QueueTestingPage() {
               <Button variant="outline" size="sm">
                 {user.credits} Credits
               </Button>
+              <Button onClick={() => router.push('/credits')} variant="outline" size="sm">
+                Buy Credits
+              </Button>
               {isAdmin && (
                 <Button onClick={() => router.push('/admin')} variant="outline">
                   Admin Panel
