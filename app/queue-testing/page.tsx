@@ -279,9 +279,20 @@ export default function QueueTestingPage() {
   }
 
   // Save analysis result to history
-  const saveAnalysisToHistory = (result: DetailedAnalysisResult) => {
+  const saveAnalysisToHistory = async (result: DetailedAnalysisResult) => {
     if (!user) return
 
+    console.log("💾 Saving analysis to database and localStorage...")
+    
+    // Save to database
+    try {
+      const saveResult = await db.saveAnalysisResult(user.hashedEmail, result)
+      console.log("✅ Saved to database:", saveResult)
+    } catch (error) {
+      console.warn("⚠️ Failed to save to database, using localStorage only:", error)
+    }
+
+    // Also save to localStorage as backup
     const historyKey = `analysis_history_${user.hashedEmail}`
     const existingHistory = JSON.parse(localStorage.getItem(historyKey) || "[]")
 
@@ -303,11 +314,32 @@ export default function QueueTestingPage() {
   }
 
   // Load analysis history
-  const loadAnalysisHistory = () => {
+  const loadAnalysisHistory = async () => {
     if (!user) return
 
+    console.log("📚 Loading analysis history...")
+    
+    try {
+      // Try to load from database first
+      const { data: dbHistory, error } = await db.getAnalysisHistory(user.hashedEmail)
+      
+      if (dbHistory && !error) {
+        console.log(`📚 Loaded ${dbHistory.length} results from database`)
+        const historyResults = dbHistory.map((record: any) => record.analysis_data as DetailedAnalysisResult)
+        setAnalysisHistory(historyResults)
+        return
+      } else {
+        console.warn("⚠️ Failed to load from database:", error)
+      }
+    } catch (error) {
+      console.warn("⚠️ Database history load failed:", error)
+    }
+
+    // Fallback to localStorage
+    console.log("📚 Loading from localStorage as fallback...")
     const historyKey = `analysis_history_${user.hashedEmail}`
     const history = JSON.parse(localStorage.getItem(historyKey) || "[]")
+    console.log(`📚 Loaded ${history.length} results from localStorage`)
     setAnalysisHistory(history)
   }
 
@@ -512,14 +544,22 @@ export default function QueueTestingPage() {
 
     console.log(`🔥 CREDIT UPDATE: ${user.credits} → ${newCredits}`)
 
-    // Update user state immediately
+    // Update user state immediately for responsiveness
     const updatedUser = { ...user, credits: newCredits }
     setUser(updatedUser)
     
-    // Try to update database, but don't fail if it's not set up
+    // Use proper database credit deduction
     try {
-      const result = await db.updateUserCredits(user.hashedEmail, newCredits)
-      console.log(`✅ Database update result:`, result)
+      const creditDifference = user.credits - newCredits
+      if (creditDifference > 0) {
+        // Deducting credits
+        const result = await db.deductCredits(user.hashedEmail, creditDifference, "queue_analysis")
+        console.log(`✅ Database credit deduction result:`, result)
+      } else if (creditDifference < 0) {
+        // Adding credits
+        const result = await db.addCredits(user.hashedEmail, Math.abs(creditDifference), "credit_purchase")
+        console.log(`✅ Database credit addition result:`, result)
+      }
     } catch (error) {
       console.warn("⚠️ Failed to update credits in database (using in-memory only):", error)
       // Don't revert user state - just continue with in-memory credits
@@ -1217,20 +1257,20 @@ export default function QueueTestingPage() {
         try {
           console.log("🔍 Attempting database profile lookup...")
           const timeoutPromise = new Promise((_, reject) => 
-            setTimeout(() => reject(new Error('Database timeout')), 3000)
+            setTimeout(() => reject(new Error('Database timeout')), 5000)
           )
           const profilePromise = db.getUserProfile(session.user.id)
           
-          const { data: profile } = await Promise.race([profilePromise, timeoutPromise]) as any
-          console.log("🔍 Database lookup result:", profile)
+          const { data: profile, error } = await Promise.race([profilePromise, timeoutPromise]) as any
+          console.log("🔍 Database lookup result:", { profile, error })
           
-          if (profile) {
+          if (profile && !error) {
             console.log(`📊 Loaded profile with ${profile.credits} credits`)
             const userData: UserData = {
               email: session.user.email!,
               name: profile.name,
               credits: profile.credits,
-              hashedEmail: hashEmail(session.user.email!),
+              hashedEmail: session.user.id, // Use actual user ID instead of hash
               emailVerified: true,
               registrationDate: profile.created_at
             }
@@ -1239,7 +1279,7 @@ export default function QueueTestingPage() {
             setAuthStep("authenticated")
             return
           } else {
-            console.log("🔍 No profile found in database, using fallback")
+            console.log("🔍 No profile found in database or error occurred:", error)
           }
         } catch (error) {
           console.warn("⚠️ Failed to load profile from database, using fallback:", error)
@@ -1251,7 +1291,7 @@ export default function QueueTestingPage() {
           email: session.user.email!,
           name: session.user.email!.split('@')[0], // Use email prefix as name
           credits: 10, // Users start with 10 credits
-          hashedEmail: hashEmail(session.user.email!),
+          hashedEmail: session.user.id, // Use actual user ID
           emailVerified: true,
           registrationDate: new Date().toISOString()
         }

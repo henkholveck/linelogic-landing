@@ -94,39 +94,121 @@ export const auth = {
 export const db = {
   // Get user profile with credits
   getUserProfile: async (userId: string) => {
+    console.log("📊 Getting user profile for:", userId)
     const { data, error } = await supabase.from("user_profiles").select("*").eq("id", userId).single()
+    console.log("📊 Profile result:", { data, error })
     return { data, error }
   },
 
   // Update user credits
   updateUserCredits: async (userId: string, credits: number) => {
-    const { data, error } = await supabase.from("user_profiles").update({ credits }).eq("id", userId).select().single()
+    console.log("💳 Updating credits for user:", userId, "to:", credits)
+    const { data, error } = await supabase
+      .from("user_profiles")
+      .update({ credits, updated_at: new Date().toISOString() })
+      .eq("id", userId)
+      .select()
+      .single()
+    console.log("💳 Credit update result:", { data, error })
     return { data, error }
+  },
+
+  // Deduct credits and log transaction
+  deductCredits: async (userId: string, amount: number, reason: string) => {
+    console.log("💸 Deducting credits:", { userId, amount, reason })
+    
+    // First get current credits
+    const { data: profile, error: profileError } = await db.getUserProfile(userId)
+    if (profileError || !profile) {
+      console.error("❌ Failed to get profile for credit deduction:", profileError)
+      return { data: null, error: profileError }
+    }
+
+    const newCredits = profile.credits - amount
+    if (newCredits < 0) {
+      return { data: null, error: new Error("Insufficient credits") }
+    }
+
+    // Update credits
+    const { data: updatedProfile, error: updateError } = await db.updateUserCredits(userId, newCredits)
+    if (updateError) {
+      console.error("❌ Failed to update credits:", updateError)
+      return { data: null, error: updateError }
+    }
+
+    // Log transaction
+    const { error: logError } = await supabase
+      .from("credit_transactions")
+      .insert({
+        user_id: userId,
+        amount: -amount,
+        type: "debit",
+        reason: reason
+      })
+
+    if (logError) {
+      console.warn("⚠️ Failed to log credit transaction:", logError)
+    }
+
+    return { data: updatedProfile, error: null }
+  },
+
+  // Add credits and log transaction
+  addCredits: async (userId: string, amount: number, reason: string, adminEmail?: string) => {
+    console.log("💰 Adding credits:", { userId, amount, reason, adminEmail })
+    
+    const { data: profile, error: profileError } = await db.getUserProfile(userId)
+    if (profileError || !profile) {
+      return { data: null, error: profileError }
+    }
+
+    const newCredits = profile.credits + amount
+    const { data: updatedProfile, error: updateError } = await db.updateUserCredits(userId, newCredits)
+    if (updateError) {
+      return { data: null, error: updateError }
+    }
+
+    // Log transaction
+    await supabase
+      .from("credit_transactions")
+      .insert({
+        user_id: userId,
+        amount: amount,
+        type: "credit",
+        reason: reason,
+        admin_email: adminEmail
+      })
+
+    return { data: updatedProfile, error: null }
   },
 
   // Save analysis result
   saveAnalysisResult: async (userId: string, analysisData: any) => {
+    console.log("📊 Saving analysis result for:", userId)
     const { data, error } = await supabase
       .from("analysis_results")
       .insert({
         user_id: userId,
         email: analysisData.email,
         analysis_data: analysisData,
-        created_at: new Date().toISOString(),
+        credits_used: 5
       })
       .select()
       .single()
+    console.log("📊 Analysis save result:", { data, error })
     return { data, error }
   },
 
   // Get user's analysis history
   getAnalysisHistory: async (userId: string) => {
+    console.log("📚 Getting analysis history for:", userId)
     const { data, error } = await supabase
       .from("analysis_results")
       .select("*")
       .eq("user_id", userId)
       .order("created_at", { ascending: false })
       .limit(50)
+    console.log("📚 History result:", { count: data?.length, error })
     return { data, error }
   },
 
