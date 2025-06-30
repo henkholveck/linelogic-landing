@@ -1,6 +1,7 @@
 import type { Metadata } from 'next'
 import './globals.css'
 import { AuthProvider } from '@/contexts/AuthContext'
+import MaintenanceCheck from '@/components/MaintenanceCheck'
 
 export const metadata: Metadata = {
   title: 'LineLogic - Queue Testing & Optimization',
