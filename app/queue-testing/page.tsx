@@ -39,7 +39,7 @@ import {
   X,
 } from "lucide-react"
 
-import { auth, db } from "@/lib/supabase"
+import { auth, db, supabase } from "@/lib/supabase"
 import { useSearchParams } from "next/navigation"
 
 type AuthStep = "login" | "register" | "verify-email" | "authenticated"
@@ -320,14 +320,25 @@ export default function QueueTestingPage() {
   }
 
   useEffect(() => {
-    // Clear any old localStorage data that was causing fake users
+    // Clear only our fake user data, not Supabase session data
     localStorage.removeItem("currentUser")
-    // Clear any user-specific localStorage data
+    // Clear any user-specific localStorage data from our old fake auth system
     Object.keys(localStorage).forEach(key => {
       if (key.startsWith("user_")) {
         localStorage.removeItem(key)
       }
     })
+    // Keep Supabase auth session data intact (keys starting with 'sb-')
+    
+    // Check for existing session on page load
+    const checkSession = async () => {
+      const { data: { session }, error } = await supabase.auth.getSession()
+      console.log('🔒 Initial session check:', session?.user?.email || 'No session')
+      if (error) {
+        console.error('❌ Session error:', error)
+      }
+    }
+    checkSession()
   }, [])
 
   useEffect(() => {
