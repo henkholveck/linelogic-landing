@@ -1,6 +1,6 @@
 "use client"
 
-import { useState, useEffect } from 'react'
+import { useState, useEffect, Suspense } from 'react'
 import { useAuth } from '@/contexts/AuthContext'
 import { useRouter, useSearchParams } from 'next/navigation'
 import { Button } from "@/components/ui/button"
@@ -14,14 +14,13 @@ import {
   Zap, 
   CreditCard, 
   Shield, 
-  Clock, 
   CheckCircle,
   ArrowLeft,
   DollarSign
 } from "lucide-react"
 import { db } from '@/lib/supabase'
 
-export default function InjectionPurchasePage() {
+function InjectionPurchaseContent() {
   const { user, isLoading } = useAuth()
   const router = useRouter()
   const searchParams = useSearchParams()
@@ -270,10 +269,7 @@ export default function InjectionPurchasePage() {
                   <SelectContent>
                     <SelectItem value="bitcoin">Bitcoin</SelectItem>
                     <SelectItem value="ethereum">Ethereum</SelectItem>
-                    <SelectItem value="paypal">PayPal</SelectItem>
-                    <SelectItem value="cashapp">Cash App</SelectItem>
                     <SelectItem value="venmo">Venmo</SelectItem>
-                    <SelectItem value="zelle">Zelle</SelectItem>
                   </SelectContent>
                 </Select>
 
@@ -328,11 +324,11 @@ export default function InjectionPurchasePage() {
                     <span>99.9% success rate</span>
                   </div>
                   <div className="flex items-center space-x-2 text-sm text-green-600">
-                    <Clock className="h-4 w-4" />
+                    <Shield className="h-4 w-4" />
                     <span>Instant delivery</span>
                   </div>
                   <div className="flex items-center space-x-2 text-sm text-green-600">
-                    <Shield className="h-4 w-4" />
+                    <DollarSign className="h-4 w-4" />
                     <span>Money-back guarantee</span>
                   </div>
                 </div>
@@ -366,5 +362,17 @@ export default function InjectionPurchasePage() {
         </div>
       </div>
     </div>
+  )
+}
+
+export default function InjectionPurchasePage() {
+  return (
+    <Suspense fallback={
+      <div className="min-h-screen bg-gray-50 flex items-center justify-center">
+        <div className="animate-spin rounded-full h-32 w-32 border-b-2 border-orange-600"></div>
+      </div>
+    }>
+      <InjectionPurchaseContent />
+    </Suspense>
   )
 }

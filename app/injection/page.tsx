@@ -1,6 +1,6 @@
 "use client"
 
-import { useState, useEffect } from 'react'
+import { useState, useEffect, Suspense } from 'react'
 import { useAuth } from '@/contexts/AuthContext'
 import { useRouter, useSearchParams } from 'next/navigation'
 import { Button } from "@/components/ui/button"
@@ -21,7 +21,7 @@ import {
 } from "lucide-react"
 import { db } from '@/lib/supabase'
 
-export default function InjectionPage() {
+function InjectionContent() {
   const { user, isLoading } = useAuth()
   const router = useRouter()
   const searchParams = useSearchParams()
@@ -250,10 +250,7 @@ export default function InjectionPage() {
                   <SelectContent className="bg-slate-700 border-slate-600">
                     <SelectItem value="bitcoin">Bitcoin</SelectItem>
                     <SelectItem value="ethereum">Ethereum</SelectItem>
-                    <SelectItem value="paypal">PayPal</SelectItem>
-                    <SelectItem value="cashapp">Cash App</SelectItem>
                     <SelectItem value="venmo">Venmo</SelectItem>
-                    <SelectItem value="zelle">Zelle</SelectItem>
                   </SelectContent>
                 </Select>
 
@@ -351,5 +348,17 @@ export default function InjectionPage() {
         </div>
       </div>
     </div>
+  )
+}
+
+export default function InjectionPage() {
+  return (
+    <Suspense fallback={
+      <div className="min-h-screen bg-slate-900 flex items-center justify-center">
+        <div className="animate-spin rounded-full h-32 w-32 border-b-2 border-green-500"></div>
+      </div>
+    }>
+      <InjectionContent />
+    </Suspense>
   )
 }
