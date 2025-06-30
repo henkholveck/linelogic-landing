@@ -16,7 +16,16 @@ export default function CreditsPage() {
   const [selectedCredits, setSelectedCredits] = useState(0)
   const [selectedPrice, setSelectedPrice] = useState(0)
   const [paymentMethod, setPaymentMethod] = useState('')
-  const [receiptId, setReceiptId] = useState('')
+  const [paymentData, setPaymentData] = useState('')
+  const [venmoUsername, setVenmoUsername] = useState('')
+
+  // Venmo configuration
+  const VENMO_USERNAME = 'linelogicpay'
+  
+  const generateVenmoLink = (amount: number, credits: number) => {
+    const note = encodeURIComponent(`LineLogic ${credits} Credits Purchase`)
+    return `https://venmo.com/${VENMO_USERNAME}?txn=pay&amount=${amount}&note=${note}&audience=private`
+  }
   const [isSubmitting, setIsSubmitting] = useState(false)
   const [successMessage, setSuccessMessage] = useState('')
 
