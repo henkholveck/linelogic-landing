@@ -263,24 +263,49 @@ export default function CreditsPage() {
                   </div>
                 )}
 
-                <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-2">
-                    Payment Receipt ID / Transaction Hash
-                  </label>
-                  <Input
-                    value={receiptId}
-                    onChange={(e) => setReceiptId(e.target.value)}
-                    placeholder="Enter your payment confirmation"
-                    required
-                  />
-                </div>
+                {paymentMethod === 'venmo' ? (
+                  <div>
+                    <label className="block text-sm font-medium text-gray-700 mb-2">
+                      Your Venmo Username
+                    </label>
+                    <Input
+                      value={venmoUsername}
+                      onChange={(e) => setVenmoUsername(e.target.value)}
+                      placeholder="Enter your Venmo username (e.g., @johndoe)"
+                      required
+                    />
+                    <p className="text-xs text-gray-500 mt-1">
+                      Enter the username you sent the payment from for verification
+                    </p>
+                  </div>
+                ) : (
+                  <div>
+                    <label className="block text-sm font-medium text-gray-700 mb-2">
+                      Transaction ID / Hash
+                    </label>
+                    <Input
+                      value={paymentData}
+                      onChange={(e) => setPaymentData(e.target.value)}
+                      placeholder="Enter your transaction ID or hash"
+                      required
+                    />
+                    <p className="text-xs text-gray-500 mt-1">
+                      Copy and paste the transaction ID from your crypto wallet
+                    </p>
+                  </div>
+                )}
 
                 <Button 
                   onClick={handleSubmitPayment}
-                  disabled={!paymentMethod || !receiptId || isSubmitting}
+                  disabled={
+                    !paymentMethod || 
+                    (paymentMethod === 'venmo' && !venmoUsername) ||
+                    ((paymentMethod === 'bitcoin' || paymentMethod === 'ethereum') && !paymentData) ||
+                    isSubmitting
+                  }
                   className="w-full"
                 >
-                  {isSubmitting ? 'Submitting...' : 'Submit Payment'}
+                  {isSubmitting ? 'Submitting...' : 'Submit Payment Verification'}
                 </Button>
 
                 <p className="text-xs text-gray-500 text-center">
