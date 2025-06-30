@@ -59,36 +59,42 @@ export default function CreditsPage() {
   }
 
   const handleSubmitPayment = async () => {
-    if (!paymentMethod || !receiptId) {
-      alert('Please fill in all fields')
+    if (!paymentMethod) {
+      alert('Please select a payment method')
+      return
+    }
+
+    if (paymentMethod === 'venmo' && !venmoUsername) {
+      alert('Please enter your Venmo username')
+      return
+    }
+
+    if ((paymentMethod === 'bitcoin' || paymentMethod === 'ethereum') && !paymentData) {
+      alert('Please enter your transaction ID')
       return
     }
 
     setIsSubmitting(true)
     
     try {
-      // Here you would normally integrate with your payment processing
-      // For now, we'll simulate the payment submission
-      
-      // Save payment receipt for manual verification
+      // Save payment receipt for manual verification in admin panel
       const receiptData = {
         paymentType: paymentMethod,
         serviceType: 'credits',
         amount: selectedPrice,
-        receiptId: receiptId,
-        creditsToAdd: selectedCredits
+        receiptId: paymentMethod === 'venmo' ? venmoUsername : paymentData,
+        creditsToAdd: selectedCredits,
+        additionalInfo: paymentMethod === 'venmo' ? `Venmo Username: ${venmoUsername}` : `Transaction ID: ${paymentData}`
       }
 
-      // In a real implementation, you'd call your API here
+      // In a real implementation, you'd call your API here to save the payment receipt
       // await db.savePaymentReceipt(user.id, receiptData)
       
-      setSuccessMessage(`Payment submitted! You'll receive ${selectedCredits} credits after verification.`)
+      setSuccessMessage(`Payment submitted! You'll receive ${selectedCredits} credits after manual verification by our team.`)
       setShowPaymentForm(false)
-      setReceiptId('')
+      setPaymentData('')
+      setVenmoUsername('')
       setPaymentMethod('')
-      
-      // Refresh credits in case of instant processing
-      await refreshCredits()
       
     } catch (error) {
       console.error('Payment submission error:', error)
