@@ -20,7 +20,7 @@ export default function CreditsPage() {
   const [venmoUsername, setVenmoUsername] = useState('')
 
   // Venmo configuration
-  const VENMO_USERNAME = 'linelogicpay'
+  const VENMO_USERNAME = 'linelogic'
   
   const generateVenmoLink = (amount: number, credits: number) => {
     const note = encodeURIComponent(`LineLogic ${credits} Credits Purchase`)
