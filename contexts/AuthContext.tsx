@@ -1,7 +1,7 @@
 "use client"
 
 import React, { createContext, useContext, useEffect, useState } from 'react'
-import { auth } from '@/lib/supabase'
+import { auth, db } from '@/lib/supabase'
 
 interface User {
   id: string
@@ -67,13 +67,27 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     try {
       const { user: authUser } = await auth.getCurrentUser()
       if (authUser) {
-        setUser({
-          id: authUser.id,
-          email: authUser.email || '',
-          name: authUser.user_metadata?.name || authUser.email || '',
-          credits: authUser.user_metadata?.credits || 0,
-          email_verified: authUser.email_confirmed_at !== null
-        })
+        // Get user profile from database instead of just metadata
+        const { data: profile } = await db.getUserProfile(authUser.id)
+        
+        if (profile) {
+          setUser({
+            id: authUser.id,
+            email: profile.email,
+            name: profile.name,
+            credits: profile.credits,
+            email_verified: profile.email_verified || authUser.email_confirmed_at !== null
+          })
+        } else {
+          // Fallback to metadata if profile doesn't exist yet
+          setUser({
+            id: authUser.id,
+            email: authUser.email || '',
+            name: authUser.user_metadata?.name || authUser.email || '',
+            credits: 0, // No credits until verified
+            email_verified: authUser.email_confirmed_at !== null
+          })
+        }
       }
     } catch (error) {
       console.error('Error refreshing user:', error)

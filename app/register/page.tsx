@@ -30,17 +30,39 @@ export default function RegisterPage() {
     setError('')
 
     try {
-      const result = await signUp(email, password, name)
+      // Get user's IP address for rate limiting
+      let userIP = null
+      try {
+        const ipResponse = await fetch('https://api.ipify.org?format=json')
+        const ipData = await ipResponse.json()
+        userIP = ipData.ip
+      } catch (ipError) {
+        console.warn('Could not get IP address:', ipError)
+      }
+
+      const result = await signUp(email, password, name, userIP)
       if (result.error) {
-        setError(result.error.message)
+        if (result.error.message.includes('rate limit') || result.error.message.includes('Too many')) {
+          setError('Too many signup attempts from this location. Please try again later.')
+        } else if (result.error.message.includes('valid name')) {
+          setError('Please enter a valid name (at least 2 characters, letters only)')
+        } else {
+          setError(result.error.message)
+        }
       } else {
         setSuccess(true)
         setTimeout(() => {
-          router.push('/login')
-        }, 2000)
+          router.push('/login?message=check-email')
+        }, 3000)
       }
-    } catch (err) {
-      setError('Registration failed. Please try again.')
+    } catch (err: any) {
+      if (err.message.includes('rate limit') || err.message.includes('Too many')) {
+        setError('Too many signup attempts. Please try again later.')
+      } else if (err.message.includes('valid name')) {
+        setError('Please enter a valid name (minimum 2 characters, letters only)')
+      } else {
+        setError('Registration failed. Please try again.')
+      }
     } finally {
       setLoading(false)
     }
@@ -53,7 +75,13 @@ export default function RegisterPage() {
           <CardContent className="text-center py-8">
             <div className="text-green-600 text-6xl mb-4">✓</div>
             <h2 className="text-2xl font-bold text-gray-900 mb-2">Account Created!</h2>
-            <p className="text-gray-600">Please check your email to verify your account, then sign in.</p>
+            <p className="text-gray-600 mb-4">
+              Please check your email to verify your account. 
+              You'll receive 10 free credits after verification.
+            </p>
+            <p className="text-sm text-gray-500">
+              Redirecting to login page...
+            </p>
           </CardContent>
         </Card>
       </div>

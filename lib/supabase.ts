@@ -13,8 +13,8 @@ export const supabase = createClient(supabaseUrl, supabaseAnonKey, {
 
 // Auth helper functions
 export const auth = {
-  signUp: async (email: string, password: string, name: string) => {
-    // ✅ Validate inputs are actually strings
+  signUp: async (email: string, password: string, name: string, ipAddress?: string) => {
+    // ✅ Enhanced validation
     if (typeof email !== "string" || !email.trim()) {
       throw new Error("Email must be a valid string")
     }
@@ -25,18 +25,61 @@ export const auth = {
       throw new Error("Name must be a valid string")
     }
 
-    console.log("Supabase signUp called with:", { email: email.trim(), name: name.trim() })
+    // Enhanced name validation
+    const cleanName = name.trim()
+    if (cleanName.length < 2) {
+      throw new Error("Name must be at least 2 characters")
+    }
+    if (cleanName.length > 50) {
+      throw new Error("Name must be less than 50 characters")
+    }
+    // Prevent obvious spam patterns
+    if (/^(.)\1+$/.test(cleanName)) { // repeated characters like "aaa"
+      throw new Error("Please enter a valid name")
+    }
+    if (!/^[a-zA-Z\s'-]+$/.test(cleanName)) {
+      throw new Error("Name can only contain letters, spaces, hyphens, and apostrophes")
+    }
+
+    // Check rate limits if IP provided
+    if (ipAddress) {
+      const { data: rateLimitOk } = await supabase.rpc('check_signup_rate_limit', {
+        user_ip: ipAddress,
+        user_email: email.trim().toLowerCase()
+      })
+      
+      if (!rateLimitOk) {
+        throw new Error("Too many signup attempts. Please try again later.")
+      }
+    }
+
+    console.log("Supabase signUp called with:", { email: email.trim(), name: cleanName })
 
     const { data, error } = await supabase.auth.signUp({
-      email: email.trim(),
+      email: email.trim().toLowerCase(),
       password,
       options: {
         data: {
-          name: name.trim(),
-          credits: 10, // New user bonus - enough for 2 tests
+          name: cleanName,
         },
+        emailRedirectTo: `${window?.location?.origin || 'http://localhost:3000'}/login?verified=true`
       },
     })
+
+    // Log signup attempt
+    if (ipAddress) {
+      try {
+        await supabase.rpc('log_signup_attempt', {
+          user_ip: ipAddress,
+          user_email: email.trim().toLowerCase(),
+          is_success: !error,
+          user_agent_string: navigator?.userAgent || null
+        })
+      } catch (logError) {
+        console.warn("Failed to log signup attempt:", logError)
+      }
+    }
+
     return { data, error }
   },
 

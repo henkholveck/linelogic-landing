@@ -1,8 +1,8 @@
 "use client"
 
-import { useState } from 'react'
+import { useState, useEffect } from 'react'
 import { useAuth } from '@/contexts/AuthContext'
-import { useRouter } from 'next/navigation'
+import { useRouter, useSearchParams } from 'next/navigation'
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
@@ -11,10 +11,23 @@ import { Alert, AlertDescription } from "@/components/ui/alert"
 export default function LoginPage() {
   const { signIn, isLoading, user } = useAuth()
   const router = useRouter()
+  const searchParams = useSearchParams()
   const [email, setEmail] = useState('')
   const [password, setPassword] = useState('')
   const [error, setError] = useState('')
   const [loading, setLoading] = useState(false)
+  const [message, setMessage] = useState('')
+
+  useEffect(() => {
+    const urlMessage = searchParams?.get('message')
+    const verified = searchParams?.get('verified')
+    
+    if (urlMessage === 'check-email') {
+      setMessage('Please check your email and click the verification link before signing in.')
+    } else if (verified === 'true') {
+      setMessage('Email verified! You can now sign in and receive your 10 welcome credits.')
+    }
+  }, [searchParams])
 
   // Redirect if already logged in
   if (user) {
@@ -50,6 +63,12 @@ export default function LoginPage() {
         </CardHeader>
         <CardContent>
           <form onSubmit={handleSubmit} className="space-y-4">
+            {message && (
+              <Alert>
+                <AlertDescription>{message}</AlertDescription>
+              </Alert>
+            )}
+            
             {error && (
               <Alert variant="destructive">
                 <AlertDescription>{error}</AlertDescription>
